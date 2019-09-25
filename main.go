@@ -56,6 +56,22 @@ func update(screen *ebiten.Image) error {
 	return nil
 }
 
+func addParity(img *ebiten.Image, startX, startY, endX, endY float64, fill color.Color, width int) {
+	m = (endY - startY) / (endX - startX)
+	for i = startX; i < endX; i++ {
+		for j = startY; j < endY; j++ {
+			point := math.Pow(i, 2) + math.Pow(j, 2)
+			if point <= r2 {
+				if math.Abs(point-r2) < 2*radius {
+					img.Set(int(i+x), int(j+y), edge)
+				} else if fill != nil {
+					img.Set(int(i+x), int(j+y), fill)
+				}
+			}
+		}
+	}
+}
+
 func addDataBlock(img *ebiten.Image, x, y, radius float64, edge, fill, textColor color.Color, index int) {
 	addCircle(img, x, y, radius, edge, fill)
 	i := strconv.Itoa(index)
