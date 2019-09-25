@@ -8,7 +8,6 @@ import (
 	"github.com/racin/entangle-visualizer/resources/fonts"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/basicfont"
-	"image"
 	"image/color"
 	"log"
 	"math"
@@ -16,19 +15,23 @@ import (
 )
 
 var (
-	mplusNormalFont font.Face
+	dataFont     font.Face
+	dataFontSize float64
+	dataFontDPI  float64
+	dataPrRow    int
 )
 
 func init() {
-	basicfont.Face7x13.Width = 40
-	basicfont.Face7x13.Height = 50
 	tt, err := truetype.Parse(fonts.OpenSans_Regular_tff)
 	if err != nil {
 		log.Fatal(err)
 	}
-	mplusNormalFont = truetype.NewFace(tt, &truetype.Options{
-		Size:    24,
-		DPI:     72,
+	dataFontSize = 24
+	dataFontDPI = 72
+	dataPrRow = 20
+	dataFont = truetype.NewFace(tt, &truetype.Options{
+		Size:    dataFontSize,
+		DPI:     dataFontDPI,
 		Hinting: font.HintingFull,
 	})
 }
@@ -41,22 +44,14 @@ func update(screen *ebiten.Image) error {
 	fmt.Printf("Bounds. Min X: %d, Max X: %d, Min Y: %d, Max Y: %d\n",
 		screen.Bounds().Min.X, screen.Bounds().Max.X,
 		screen.Bounds().Min.Y, screen.Bounds().Max.Y)
-	y := screen.SubImage(image.Rect(100, 100, 200, 300))
-	yy, _ := ebiten.NewImageFromImage(y, ebiten.FilterDefault)
-	yy.Fill(color.RGBA{0, 0, 0xff, 0xff})
-	addCircle(screen, 150, 150, 40, color.RGBA{0, 0, 0, 0xff}, nil)
-	addCircle(screen, 200, 100, 10, color.RGBA{0, 0, 0, 0xff}, color.RGBA{0, 0, 0xff, 0xff})
-	addCircle(screen, 300, 100, 20, color.RGBA{0, 0, 0, 0xff}, color.RGBA{0, 0, 0xff, 0xff})
-	addSquare(screen, 400, 300, 40, 40, false)
-	addSquare(screen, 400, 500, 80, 40, true)
 	msg := fmt.Sprintf("TPS: %0.2f", ebiten.CurrentTPS())
-
 	text.Draw(screen, msg, basicfont.Face7x13, 200, 300, color.White)
-	for i := 5; i < 10; i++ {
-		addDataBlock(screen, float64(50+(90*i)), 150, 30, color.Black, nil, color.White, i)
-	}
 
-	screen.DrawImage(yy, nil)
+	for i := 1; i <= 250; i++ {
+		row := math.Floor(float64(i) / float64(dataPrRow))
+		ix := (60 * (i % dataPrRow))
+		addDataBlock(screen, float64(40+(ix)), float64(50+(60*(row))), 25, color.Black, nil, color.White, i)
+	}
 
 	return nil
 }
@@ -64,7 +59,12 @@ func update(screen *ebiten.Image) error {
 func addDataBlock(img *ebiten.Image, x, y, radius float64, edge, fill, textColor color.Color, index int) {
 	addCircle(img, x, y, radius, edge, fill)
 	i := strconv.Itoa(index)
-	text.Draw(img, i, mplusNormalFont, int(x), int(y), textColor)
+	// x - 6, y + 6
+	dia := 2 * radius
+	offset := 8.0 // (dia - dataFontSize) / 2
+	xoffset := (1 + math.Floor(math.Log10(float64(index)))) * offset
+	fmt.Printf("DIAMETER: %f, x: %f, xoffset: %f\n", dia, index, xoffset)
+	text.Draw(img, i, dataFont, int(x-xoffset), int(y+offset), textColor)
 }
 func addCircle(img *ebiten.Image, x, y, radius float64, edge, fill color.Color) {
 	var r2 float64 = radius * radius
@@ -98,7 +98,7 @@ func addSquare(img *ebiten.Image, x, y, length, width float64, fill bool) {
 
 func main() {
 	ebiten.SetMaxTPS(3)
-	if err := ebiten.Run(update, 1024, 768, 1, "Fill"); err != nil {
+	if err := ebiten.Run(update, 1400, 900, 1, "Fill"); err != nil {
 		log.Fatal(err)
 	}
 }
