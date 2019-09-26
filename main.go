@@ -8,7 +8,6 @@ import (
 	"github.com/racin/entangle-visualizer/resources/fonts"
 	"github.com/racin/entangle/entangler"
 	"golang.org/x/image/font"
-	"golang.org/x/image/font/basicfont"
 	"image/color"
 	"log"
 	"math"
@@ -16,10 +15,19 @@ import (
 )
 
 var (
-	dataFont     font.Face
-	dataFontSize float64
-	dataFontDPI  float64
-	dataPrRow    int
+	dataFont font.Face
+	lattice  *entangler.Lattice
+)
+
+const (
+	dataFontSize = 24.0
+	dataFontDPI  = 72.0
+	dataPrRow    = 23 // 23
+	xSpace       = 80.0
+	xOffset      = 40.0
+	ySpace       = 80.0
+	yOffset      = 50.0
+	dataRadius   = 25.0
 )
 
 func init() {
@@ -27,9 +35,8 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	dataFontSize = 24
-	dataFontDPI = 72
-	dataPrRow = 20
+
+	lattice = entangler.NewLattice(3, 5, 5, "../entangle/retrives.txt", nil)
 	dataFont = truetype.NewFace(tt, &truetype.Options{
 		Size:    dataFontSize,
 		DPI:     dataFontDPI,
@@ -42,23 +49,104 @@ func update(screen *ebiten.Image) error {
 	}
 
 	screen.Fill(color.RGBA{0xff, 0, 0, 0xff})
-	fmt.Printf("Bounds. Min X: %d, Max X: %d, Min Y: %d, Max Y: %d\n",
-		screen.Bounds().Min.X, screen.Bounds().Max.X,
-		screen.Bounds().Min.Y, screen.Bounds().Max.Y)
-	msg := fmt.Sprintf("TPS: %0.2f", ebiten.CurrentTPS())
-	text.Draw(screen, msg, basicfont.Face7x13, 200, 300, color.White)
 
-	for i := 1; i <= 3; i++ {
+	numDatablocks := 115
+
+	for i := 0; i < numDatablocks; i++ {
 		row := math.Floor(float64(i) / float64(dataPrRow))
-		ix := (60 * (i % dataPrRow))
-		addDataBlock(screen, float64(40+(ix)), float64(50+(60*(row))), 25, color.Black, nil, color.White, i)
+		ix := (xSpace * (i % dataPrRow))
+		num := (((i * entangler.HorizontalStrands) + int(row)) % numDatablocks) + 1
+		addDataBlock(screen, float64(xOffset+(ix)), float64(yOffset+(ySpace*(row))), dataRadius, color.Black, nil, color.White, num)
 	}
 
-	addParity(screen, 10, 90, 120, 800, color.Black, 2)
+	for i := 0; i < len(lattice.Blocks); i++ {
+		block := lattice.Blocks[i]
+		if !block.IsParity {
+			continue
+		}
+		if len(block.Left) == 0 || len(block.Right) == 0 || block.Left[0].Position < 1 || block.Right[0].Position > numDatablocks {
+			continue
+		}
+		var clr color.Color
+		switch block.Class {
+		case entangler.Horizontal:
+			clr = color.RGBA{0, 0xff, 0, 0xff}
+		case entangler.Right:
+			clr = color.RGBA{0, 0, 0xff, 0xff}
+		case entangler.Left:
+			clr = color.Black
+		}
+		fmt.Printf("Print parity. Left: %d, Right: %d\n", block.Left[0].Position, block.Right[0].Position)
+		addParityBetweenDatablock(screen, block.Left[0].Position, block.Right[0].Position, clr, 2)
+	}
+
+	//addParityBetweenDatablock(screen, 1, 6, color.Black, 2)
+	//addParityBetweenDatablock(screen, 6, 11, color.Black, 2)
+	//addParityBetweenDatablock(screen, 1, 7, color.Black, 2)
+	//addParityBetweenDatablock(screen, 3, 7, color.RGBA{0, 0xff, 0, 0}, 2)
+
+	//addParity(screen, xOffset, yOffset+ySpace, xOffset+xSpace, yOffset+ySpace, color.White, 2)
 
 	return nil
 }
 
+func addParityBetweenDatablock(img *ebiten.Image, dataLeft, dataRight int, fill color.Color, width int) {
+	var dataLeftRow, dataRightRow float64
+	if dataLeftRow = float64(dataLeft % entangler.HorizontalStrands); dataLeftRow == 0 {
+		dataLeftRow = entangler.HorizontalStrands
+	}
+	if dataRightRow = float64(dataRight % entangler.HorizontalStrands); dataRightRow == 0 {
+		dataRightRow = entangler.HorizontalStrands
+	}
+	var dataLeftColumn float64 = float64(int((dataLeft - 1) / entangler.HorizontalStrands))
+	var dataRightColumn float64 = float64(int((dataRight - 1) / entangler.HorizontalStrands))
+	var dataLeftXpos, dataLeftYpos, dataRightXpos, dataRightYpos float64
+
+	if dataLeftRow == dataRightRow {
+		dataLeftXpos = xOffset + dataLeftColumn*xSpace + dataRadius
+		dataLeftYpos = yOffset + (ySpace * (dataLeftRow - 1))
+
+		dataRightXpos = xOffset + dataRightColumn*xSpace - dataRadius + 1
+		dataRightYpos = yOffset + (ySpace * (dataRightRow - 1))
+		addParity(img, dataLeftXpos, dataLeftYpos, dataRightXpos, dataRightYpos, fill, width)
+	} else if dataLeftRow+1 == dataRightRow {
+		dataLeftXpos = xOffset + dataLeftColumn*xSpace + 8
+		dataLeftYpos = yOffset + (ySpace * (dataLeftRow - 1)) - dataRadius - (ySpace * dataLeftColumn)
+
+		dataRightXpos = xOffset + dataRightColumn*xSpace - dataRadius + 3
+		dataRightYpos = yOffset + (ySpace * (dataRightRow - 1)) - dataRadius - dataRadius - 5 - (ySpace * dataLeftColumn)
+		addParity(img, dataLeftXpos, dataLeftYpos, dataRightXpos, dataRightYpos, fill, width)
+		fmt.Printf("Printing Right. StartX: %f, StartY: %f, EndX: %f, EndY: %f, DataLeftRow: %f\n", dataLeftXpos, dataLeftYpos, dataRightXpos, dataRightYpos, dataLeftRow)
+	} else if dataLeftRow-1 == dataRightRow {
+		dataLeftXpos = xOffset + dataLeftColumn*xSpace + 8
+		dataLeftYpos = yOffset + (ySpace * (dataLeftRow - 1)) + dataRadius + (ySpace * dataLeftColumn)
+
+		dataRightXpos = xOffset + dataRightColumn*xSpace - dataRadius + 3
+		dataRightYpos = yOffset + (ySpace * (dataRightRow - 1)) + dataRadius + dataRadius + 5 + (ySpace * dataLeftColumn)
+		addParity(img, dataLeftXpos, dataLeftYpos, dataRightXpos, dataRightYpos, fill, width)
+		fmt.Printf("Printing Left. StartX: %f, StartY: %f, EndX: %f, EndY: %f\n", dataLeftXpos, dataLeftYpos, dataRightXpos, dataRightYpos)
+	} else if dataLeftRow > dataRightRow { // Need to draw two lines
+		dataLeftXpos = xOffset + dataLeftColumn*xSpace + 8
+		dataLeftYpos = yOffset + (ySpace * (dataLeftRow - 1)) - dataRadius - (ySpace * dataLeftColumn)
+
+		dataRightXpos = xOffset + dataRightColumn*xSpace - dataRadius + 3
+		dataRightYpos = yOffset + (ySpace * (dataRightRow - 1)) + 5 - dataRadius - dataRadius - dataRadius - dataRadius - (ySpace * dataLeftColumn)
+
+		addParity(img, dataLeftXpos, dataLeftYpos, dataLeftXpos+15, dataLeftYpos+15, fill, width)
+		addParity(img, dataRightXpos-15, dataRightYpos-15, dataRightXpos, dataRightYpos, fill, width)
+		fmt.Printf("Printing WRAPPER Right. StartX: %f, StartY: %f, EndX: %f, EndY: %f\n", dataLeftXpos, dataLeftYpos, dataRightXpos, dataRightYpos)
+	} else if dataLeftRow < dataRightRow { // Need to draw two lines
+		dataLeftXpos = xOffset + dataLeftColumn*xSpace
+		dataLeftYpos = yOffset + (ySpace * (dataLeftRow - 1)) + 15 + (ySpace * dataLeftColumn)
+
+		dataRightXpos = xOffset + dataRightColumn*xSpace - dataRadius + 3
+		dataRightYpos = yOffset + (ySpace * (dataRightRow - 1)) + dataRadius + dataRadius + dataRadius + dataRadius + 20 + (ySpace * dataLeftColumn)
+
+		addParity(img, dataLeftXpos, dataLeftYpos, dataLeftXpos+15, dataLeftYpos-15, fill, width)
+		addParity(img, dataRightXpos, dataRightYpos+15, dataRightXpos+15, dataRightYpos, fill, width)
+		fmt.Printf("Printing WRAPPER Left. StartX: %f, StartY: %f, EndX: %f, EndY: %f\n", dataLeftXpos, dataLeftYpos, dataRightXpos, dataRightYpos)
+	}
+}
 func addParity(img *ebiten.Image, startX, startY, endX, endY float64, fill color.Color, width int) {
 	m := (endY - startY) / (endX - startX)
 	for i := startX; i < endX; i++ {
@@ -74,10 +162,10 @@ func addDataBlock(img *ebiten.Image, x, y, radius float64, edge, fill, textColor
 	addCircle(img, x, y, radius, edge, fill)
 	i := strconv.Itoa(index)
 	// x - 6, y + 6
-	dia := 2 * radius
+	//dia := 2 * radius
 	offset := 8.0 // (dia - dataFontSize) / 2
 	xoffset := (1 + math.Floor(math.Log10(float64(index)))) * offset
-	fmt.Printf("DIAMETER: %f, x: %f, xoffset: %f\n", dia, index, xoffset)
+	//fmt.Printf("DIAMETER: %f, x: %f, xoffset: %f\n", dia, index, xoffset)
 	text.Draw(img, i, dataFont, int(x-xoffset), int(y+offset), textColor)
 }
 func addCircle(img *ebiten.Image, x, y, radius float64, edge, fill color.Color) {
@@ -112,7 +200,7 @@ func addSquare(img *ebiten.Image, x, y, length, width float64, fill bool) {
 
 func main() {
 	ebiten.SetMaxTPS(3)
-	if err := ebiten.Run(update, 1400, 900, 1, "Fill"); err != nil {
+	if err := ebiten.Run(update, 1850, 900, 1, "Fill"); err != nil {
 		log.Fatal(err)
 	}
 }
