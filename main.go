@@ -6,6 +6,7 @@ import (
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/text"
 	"github.com/racin/entangle-visualizer/resources/fonts"
+	"github.com/racin/entangle/entangler"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/basicfont"
 	"image/color"
@@ -47,27 +48,24 @@ func update(screen *ebiten.Image) error {
 	msg := fmt.Sprintf("TPS: %0.2f", ebiten.CurrentTPS())
 	text.Draw(screen, msg, basicfont.Face7x13, 200, 300, color.White)
 
-	for i := 1; i <= 250; i++ {
+	for i := 1; i <= 3; i++ {
 		row := math.Floor(float64(i) / float64(dataPrRow))
 		ix := (60 * (i % dataPrRow))
 		addDataBlock(screen, float64(40+(ix)), float64(50+(60*(row))), 25, color.Black, nil, color.White, i)
 	}
 
+	addParity(screen, 10, 90, 120, 800, color.Black, 2)
+
 	return nil
 }
 
 func addParity(img *ebiten.Image, startX, startY, endX, endY float64, fill color.Color, width int) {
-	m = (endY - startY) / (endX - startX)
-	for i = startX; i < endX; i++ {
-		for j = startY; j < endY; j++ {
-			point := math.Pow(i, 2) + math.Pow(j, 2)
-			if point <= r2 {
-				if math.Abs(point-r2) < 2*radius {
-					img.Set(int(i+x), int(j+y), edge)
-				} else if fill != nil {
-					img.Set(int(i+x), int(j+y), fill)
-				}
-			}
+	m := (endY - startY) / (endX - startX)
+	for i := startX; i < endX; i++ {
+		a := int(i * m)
+		ii := int(i)
+		for j := 0; j < width; j++ {
+			img.Set(ii, int(startY)+j+a, fill)
 		}
 	}
 }
