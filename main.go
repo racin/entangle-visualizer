@@ -67,6 +67,9 @@ func update(screen *ebiten.Image) error {
 		if len(block.Left) == 0 || len(block.Right) == 0 || block.Left[0].Position < 1 || block.Right[0].Position > numDatablocks {
 			continue
 		}
+		// if block.Right[0].Position > numDatablocks && (block.Right[0].Position == block.Left[0].Position+1 || block.Right[0].Position == block.Left[0].Position+9) {
+		// 	continue
+		// }
 		var clr color.Color
 		switch block.Class {
 		case entangler.Horizontal:
@@ -77,7 +80,7 @@ func update(screen *ebiten.Image) error {
 			clr = color.Black
 		}
 		fmt.Printf("Print parity. Left: %d, Right: %d\n", block.Left[0].Position, block.Right[0].Position)
-		addParityBetweenDatablock(screen, block.Left[0].Position, block.Right[0].Position, clr, 2)
+		addParityBetweenDatablock(screen, block.Left[0].Position, block.Right[0].Position, clr, 3)
 	}
 
 	//addParityBetweenDatablock(screen, 1, 6, color.Black, 2)
@@ -164,7 +167,7 @@ func addDataBlock(img *ebiten.Image, x, y, radius float64, edge, fill, textColor
 	// x - 6, y + 6
 	//dia := 2 * radius
 	offset := 8.0 // (dia - dataFontSize) / 2
-	xoffset := (1 + math.Floor(math.Log10(float64(index)))) * offset
+	xoffset := ((1 + math.Floor(math.Log10(float64(index)))) * offset) - 2
 	//fmt.Printf("DIAMETER: %f, x: %f, xoffset: %f\n", dia, index, xoffset)
 	text.Draw(img, i, dataFont, int(x-xoffset), int(y+offset), textColor)
 }
@@ -175,7 +178,7 @@ func addCircle(img *ebiten.Image, x, y, radius float64, edge, fill color.Color) 
 		for j = -radius + 1; j < radius; j++ {
 			point := math.Pow(i, 2) + math.Pow(j, 2)
 			if point <= r2 {
-				if math.Abs(point-r2) < 2*radius {
+				if math.Abs(point-r2) < 4*radius {
 					img.Set(int(i+x), int(j+y), edge)
 				} else if fill != nil {
 					img.Set(int(i+x), int(j+y), fill)
