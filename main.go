@@ -64,7 +64,7 @@ func update(screen *ebiten.Image) error {
 		if !block.IsParity {
 			continue
 		}
-		if len(block.Left) == 0 || len(block.Right) == 0 || block.Left[0].Position < 1 || block.Right[0].Position > numDatablocks {
+		if len(block.Left) == 0 || len(block.Right) == 0 || block.Left[0].Position < 1 || block.Right[0].Position > numDatablocks+5 {
 			continue
 		}
 		// if block.Right[0].Position > numDatablocks && (block.Right[0].Position == block.Left[0].Position+1 || block.Right[0].Position == block.Left[0].Position+9) {
@@ -203,7 +203,7 @@ func addSquare(img *ebiten.Image, x, y, length, width float64, fill bool) {
 
 func main() {
 	ebiten.SetMaxTPS(3)
-	if err := ebiten.Run(update, 1850, 900, 1, "Fill"); err != nil {
+	if err := ebiten.Run(update, 1840, 430, 1, "Fill"); err != nil {
 		log.Fatal(err)
 	}
 }
