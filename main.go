@@ -10,7 +10,6 @@ import (
 	"image/color"
 	"log"
 	"os"
-	"strconv"
 	"sync"
 	"time"
 )
@@ -23,7 +22,7 @@ var (
 	keyPresses        int
 	keyLock           sync.Mutex
 	keyLockBool       bool
-	logParser         LogParser
+	logParser         *LogParser
 )
 
 const (
@@ -64,8 +63,8 @@ func init() {
 			os.Exit(1)
 		}
 	}
-	logParser := NewLogParser(logPath)
-	if err := logParser.ReadLog(); err != nil {
+	logParser = NewLogParser(logPath)
+	if err := logParser.ParseLog(); err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
@@ -79,20 +78,50 @@ func init() {
 	keyLockBool = false
 }
 
-func keyPressed(key ebiten.Key, presses int) {
+func keyPressed(img *ebiten.Image, key ebiten.Key, presses int) {
 	keyLock.Lock()
 	defer keyLock.Unlock()
 	if presses < keyPresses {
 		return
 	}
 
-	fmt.Println("KEY PRESSED!! " + key.String())
-	i, _ := strconv.Atoi(key.String())
-	if lattice.Blocks[i].IsUnavailable {
-		lattice.Blocks[i].Data = make([]byte, 5)
-	} else {
-		lattice.Blocks[i].IsUnavailable = true
+	if key.String() == "Left" {
+		logParser.BlockCursor--
+		for i := 0; i < len(lattice.Blocks); i++ {
+			lattice.Blocks[i].Data = nil
+			lattice.Blocks[i].IsUnavailable = false
+			lattice.Blocks[i].WasDownloaded = false
+		}
+	} else if key.String() == "Up" {
+		logParser.BlockCursor = logParser.BlockCursor + 10
+	} else if key.String() == "Down" {
+		logParser.BlockCursor = logParser.BlockCursor - 10
+		for i := 0; i < len(lattice.Blocks); i++ {
+			lattice.Blocks[i].Data = nil
+			lattice.Blocks[i].IsUnavailable = false
+			lattice.Blocks[i].WasDownloaded = false
+		}
+	} else if key.String() == "Right" {
+		logParser.BlockCursor++
+	} else if key.String() == "1" {
+		logParser.BlockCursor = 0
+		logParser.TotalCursor--
+		for i := 0; i < len(lattice.Blocks); i++ {
+			lattice.Blocks[i].Data = nil
+			lattice.Blocks[i].IsUnavailable = false
+			lattice.Blocks[i].WasDownloaded = false
+		}
+	} else if key.String() == "2" {
+		logParser.BlockCursor = 0
+		logParser.TotalCursor++
+		for i := 0; i < len(lattice.Blocks); i++ {
+			lattice.Blocks[i].Data = nil
+			lattice.Blocks[i].IsUnavailable = false
+			lattice.Blocks[i].WasDownloaded = false
+		}
 	}
+
+	logParser.ReadLog(lattice)
 
 	time.Sleep(300 * time.Millisecond)
 	keyPresses++
@@ -101,7 +130,7 @@ func keyPressed(key ebiten.Key, presses int) {
 func update(screen *ebiten.Image) error {
 	for k := ebiten.Key(0); k <= ebiten.KeyMax; k++ {
 		if ebiten.IsKeyPressed(k) {
-			go keyPressed(k, keyPresses)
+			go keyPressed(screen, k, keyPresses)
 			break
 		}
 	}
@@ -122,7 +151,11 @@ func update(screen *ebiten.Image) error {
 		}
 		var clr color.Color
 		if bl.HasData() {
-			clr = color.RGBA{0x0, 0xff, 0x0, 0xff}
+			if !bl.WasDownloaded {
+				clr = color.RGBA{0x33, 0x99, 0xff, 0xff}
+			} else {
+				clr = color.RGBA{0x0, 0xff, 0, 0xff}
+			}
 		} else if bl.IsUnavailable {
 			clr = color.RGBA{0xff, 0x0, 0x0, 0xff}
 		} else {
@@ -158,7 +191,14 @@ func update(screen *ebiten.Image) error {
 			rightPos = block.Right[0].Position
 		}
 
-		var clr color.Color = color.Black
+		var clr color.Color
+		if !block.HasData() && block.IsUnavailable {
+			clr = color.RGBA{0xff, 0, 0, 0xff}
+		} else if !block.WasDownloaded {
+			clr = color.RGBA{0x33, 0x99, 0xff, 0xff}
+		} else {
+			clr = color.Black
+		}
 		// switch block.Class {
 		// case entangler.Horizontal:
 		// 	clr = color.RGBA{0, 0xff, 0, 0xff}
