@@ -10,6 +10,7 @@ import (
 	"image/color"
 	"log"
 	"math"
+	"os"
 )
 
 var (
@@ -36,8 +37,15 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	lattice = entangler.NewLattice(3, 5, 5, "lattice.json", nil)
+	latticePath := "lattice.json"
+	if _, err := os.Stat(latticePath); os.IsNotExist(err) {
+		latticePath = "resources/lattice.json"
+		if _, err := os.Stat(latticePath); os.IsNotExist(err) {
+			fmt.Println("Did not find lattice.json in working directory or resources/")
+			os.Exit(1)
+		}
+	}
+	lattice = entangler.NewLattice(3, 5, 5, latticePath, nil)
 	dataFont = truetype.NewFace(tt, &truetype.Options{
 		Size:    dataFontSize,
 		DPI:     dataFontDPI,
