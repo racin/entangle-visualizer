@@ -6,7 +6,16 @@ import (
 	"math"
 )
 
-func addCircle(img *ebiten.Image, x, y, radius float64, edge, fill color.Color) {
+type circleKey struct {
+	edge color.Color
+	fill color.Color
+}
+
+func newCircleKey(edge, fill color.Color) circleKey {
+	return circleKey{edge: edge, fill: fill}
+}
+
+func slowAddCircle(img *ebiten.Image, x, y, radius float64, edge, fill color.Color) {
 	var r2 float64 = radius * radius
 	var i, j float64
 	for i = -radius + 1; i < radius; i++ {
@@ -21,7 +30,18 @@ func addCircle(img *ebiten.Image, x, y, radius float64, edge, fill color.Color) 
 			}
 		}
 	}
-
+}
+func addCircle(img *ebiten.Image, x, y, radius float64, edge, fill color.Color) {
+	key := newCircleKey(edge, fill)
+	if _, ok := circles[key]; !ok {
+		circles[key], _ = ebiten.NewImage(dataRadius*2, dataRadius*2, ebiten.FilterDefault)
+		slowAddCircle(circles[key], dataRadius, dataRadius, dataRadius, key.edge, key.fill)
+	}
+	g := ebiten.GeoM{}
+	g.Translate(x-dataRadius, y-dataRadius)
+	img.DrawImage(circles[key], &ebiten.DrawImageOptions{
+		GeoM: g,
+	})
 }
 
 func addSquare(img *ebiten.Image, x, y, length, width float64, fill bool) {
@@ -33,7 +53,6 @@ func addSquare(img *ebiten.Image, x, y, length, width float64, fill bool) {
 			}
 		}
 	}
-
 }
 
 func addEdge(img *ebiten.Image, startX, startY, endX, endY float64, fill color.Color, width int) {

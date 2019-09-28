@@ -71,6 +71,7 @@ func addDataBlock(img *ebiten.Image, radius float64, edge, fill, textColor color
 
 	x := float64(xOffset + (xSpace * column))
 	y := float64(yOffset + (ySpace * (row)))
+
 	addCircle(img, x, y, radius, edge, fill)
 	indexStr := strconv.Itoa(index)
 

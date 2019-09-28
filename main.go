@@ -9,13 +9,20 @@ import (
 	"golang.org/x/image/font"
 	"image/color"
 	"log"
-	"math"
 	"os"
+	"strconv"
+	"sync"
+	"time"
 )
 
 var (
-	dataFont font.Face
-	lattice  *entangler.Lattice
+	dataFont          font.Face
+	lattice           *entangler.Lattice
+	didDrawDataBlocks bool
+	circles           map[circleKey]*ebiten.Image
+	keyPresses        int
+	keyLock           sync.Mutex
+	keyLockBool       bool
 )
 
 const (
@@ -33,6 +40,7 @@ const (
 )
 
 func init() {
+	didDrawDataBlocks = false
 	tt, err := truetype.Parse(fonts.OpenSans_Regular_tff)
 	if err != nil {
 		log.Fatal(err)
@@ -51,39 +59,73 @@ func init() {
 		DPI:     dataFontDPI,
 		Hinting: font.HintingFull,
 	})
+	circles = make(map[circleKey]*ebiten.Image)
+	keyLockBool = false
 }
+
+func keyPressed(key ebiten.Key, presses int) {
+	keyLock.Lock()
+	defer keyLock.Unlock()
+	if presses < keyPresses {
+		return
+	}
+
+	fmt.Println("KEY PRESSED!! " + key.String())
+	i, _ := strconv.Atoi(key.String())
+	if lattice.Blocks[i].IsUnavailable {
+		lattice.Blocks[i].Data = make([]byte, 5)
+	} else {
+		lattice.Blocks[i].IsUnavailable = true
+	}
+
+	time.Sleep(300 * time.Millisecond)
+	keyPresses++
+}
+
 func update(screen *ebiten.Image) error {
+	for k := ebiten.Key(0); k <= ebiten.KeyMax; k++ {
+		if ebiten.IsKeyPressed(k) {
+			go keyPressed(k, keyPresses)
+			break
+		}
+	}
 	if ebiten.IsDrawingSkipped() {
 		return nil
 	}
 
-	screen.Fill(color.RGBA{0xff, 0, 0, 0xff})
-
-	numDatablocks := lattice.NumDataBlocks
-
-	for i := 0; i < numDatablocks; i++ {
-		row := math.Floor(float64(i) / float64(dataPrRow))
-		num := (((i * entangler.HorizontalStrands) + int(row)) % numDatablocks) + 1
-		addDataBlock(screen, dataRadius, color.Black, nil, color.White, num)
+	if !didDrawDataBlocks {
+		didDrawDataBlocks = true
 	}
+	screen.Fill(color.RGBA{0xff, 0xff, 0xff, 0xff})
 
-	addDataBlock(screen, dataRadius, color.Black, color.RGBA{0, 0xff, 0, 0}, color.White, 12)
-	addDataBlock(screen, dataRadius, color.Black, color.RGBA{0, 0xff, 0, 0}, color.White, 27)
-	addDataBlock(screen, dataRadius, color.Black, color.RGBA{0, 0xff, 0, 0}, color.White, 1)
-	addDataBlock(screen, dataRadius, color.Black, color.RGBA{0, 0xff, 0, 0}, color.White, 112)
-	addDataBlock(screen, dataRadius, color.Black, color.RGBA{0, 0xff, 0, 0}, color.White, 18)
-	addDataBlock(screen, dataRadius, color.Black, color.RGBA{0, 0xff, 0, 0}, color.White, 24)
-	addDataBlock(screen, dataRadius, color.Black, color.RGBA{0, 0xff, 0, 0}, color.White, 30)
+	numDatablocks := len(lattice.Blocks)
+	for i := 0; i < numDatablocks; i++ {
+		bl := lattice.Blocks[i]
+		if bl.IsParity {
+			continue
+		}
+		var clr color.Color
+		if bl.HasData() {
+			clr = color.RGBA{0x0, 0xff, 0x0, 0xff}
+		} else if bl.IsUnavailable {
+			clr = color.RGBA{0xff, 0x0, 0x0, 0xff}
+		} else {
+			clr = color.RGBA{0xc8, 0xc8, 0xc8, 0xff}
+		}
+		addDataBlock(screen, dataRadius, color.Black,
+			clr, color.Black,
+			lattice.Blocks[i].Position)
+	}
 
 	for i := 0; i < len(lattice.Blocks); i++ {
 		block := lattice.Blocks[i]
-		if !block.IsParity {
+		if !block.IsParity || !block.HasData() {
 			continue
 		}
 		var leftPos, rightPos int
 
 		if len(block.Left) == 0 || block.Left[0].Position < 1 {
-			rightPos = block.Right[0].Position + numDatablocks
+			rightPos = block.Right[0].Position + lattice.NumDataBlocks
 			r, h, l := entangler.GetBackwardNeighbours(rightPos, entangler.S, entangler.P)
 			switch block.Class {
 			case entangler.Horizontal:
@@ -93,26 +135,23 @@ func update(screen *ebiten.Image) error {
 			case entangler.Left:
 				leftPos = l
 			}
-		} else if len(block.Right) == 0 || block.Right[0].Position > numDatablocks+5 {
+		} else if len(block.Right) == 0 || block.Right[0].Position > lattice.NumDataBlocks+5 {
 			continue
 		} else {
 			leftPos = block.Left[0].Position
 			rightPos = block.Right[0].Position
 		}
 
-		// if block.Right[0].Position > numDatablocks && (block.Right[0].Position == block.Left[0].Position+1 || block.Right[0].Position == block.Left[0].Position+9) {
-		// 	continue
+		var clr color.Color = color.Black
+		// switch block.Class {
+		// case entangler.Horizontal:
+		// 	clr = color.RGBA{0, 0xff, 0, 0xff}
+		// case entangler.Right:
+		// 	clr = color.RGBA{0, 0, 0xff, 0xff}
+		// case entangler.Left:
+		// 	clr = color.Black
 		// }
-		var clr color.Color
-		switch block.Class {
-		case entangler.Horizontal:
-			clr = color.RGBA{0, 0xff, 0, 0xff}
-		case entangler.Right:
-			clr = color.RGBA{0, 0, 0xff, 0xff}
-		case entangler.Left:
-			clr = color.Black
-		}
-		fmt.Printf("Print parity. Left: %d, Right: %d\n", leftPos, rightPos)
+
 		addParityBetweenDatablock(screen, leftPos, rightPos, clr, 3)
 	}
 
@@ -120,7 +159,8 @@ func update(screen *ebiten.Image) error {
 }
 
 func main() {
-	ebiten.SetMaxTPS(3)
+	ebiten.SetMaxTPS(60)
+	ebiten.SetRunnableInBackground(true)
 	if err := ebiten.Run(update, windowXSize, windowYSize, 1, windowTitle); err != nil {
 		log.Fatal(err)
 	}
