@@ -23,6 +23,7 @@ var (
 	keyPresses        int
 	keyLock           sync.Mutex
 	keyLockBool       bool
+	logParser         LogParser
 )
 
 const (
@@ -46,6 +47,7 @@ func init() {
 		log.Fatal(err)
 	}
 	latticePath := "lattice.json"
+	logPath := "output.txt"
 	if _, err := os.Stat(latticePath); os.IsNotExist(err) {
 		latticePath = "resources/lattice.json"
 		if _, err := os.Stat(latticePath); os.IsNotExist(err) {
@@ -54,6 +56,20 @@ func init() {
 		}
 	}
 	lattice = entangler.NewLattice(3, 5, 5, latticePath, nil)
+
+	if _, err := os.Stat(logPath); os.IsNotExist(err) {
+		logPath = "resources/output.txt"
+		if _, err := os.Stat(logPath); os.IsNotExist(err) {
+			fmt.Println("Did not find output.txt in working directory or resources/")
+			os.Exit(1)
+		}
+	}
+	logParser := NewLogParser(logPath)
+	if err := logParser.ReadLog(); err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+
 	dataFont = truetype.NewFace(tt, &truetype.Options{
 		Size:    dataFontSize,
 		DPI:     dataFontDPI,
