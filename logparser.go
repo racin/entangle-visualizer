@@ -13,9 +13,20 @@ type ParityEntry struct {
 }
 
 type TotalEntry struct {
-	Datablocks   int
-	Parityblocks int
-	StartTime    int64
-	EndTime      int64
-	Error        string // Timeout
+	Datablocks    int
+	Parityblocks  int
+	StartTime     int64
+	EndTime       int64
+	Error         string // Timeout
+	ParityEntries []ParityEntry
+}
+
+type LogParser struct {
+	Path string
+}
+
+func NewLogParser(filepath string) *LogParser {
+	return &LogParser{
+		Path: filepath,
+	}
 }
