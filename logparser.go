@@ -170,9 +170,11 @@ func (l *LogParser) ReadLog(lattice *entangler.Lattice) {
 		entry := l.TotalEntry[l.TotalCursor].BlockEntries[i]
 		if entry.IsParity {
 			fmt.Printf(" - Drawing Parity. Left: %d, Right: %d\n", entry.LeftPos, entry.RightPos)
-			if entry.LeftPos < 1 || entry.RightPos > lattice.NumDataBlocks {
-				continue
-			}
+			// if entry.LeftPos < 1 || entry.RightPos > lattice.NumDataBlocks {
+			// 	continue
+			// }
+
+			// TODO: Increment with numdatablocks .
 			leftData := lattice.Blocks[entry.LeftPos-1]
 			for j := 0; j < len(leftData.Right); j++ {
 				rightData := leftData.Right[j].Right[0]
