@@ -144,11 +144,13 @@ func update(screen *ebiten.Image) error {
 	screen.Fill(color.RGBA{0xff, 0xff, 0xff, 0xff})
 
 	numDatablocks := len(lattice.Blocks)
+	dataCnt := 0
 	for i := 0; i < numDatablocks; i++ {
 		bl := lattice.Blocks[i]
 		if bl.IsParity {
 			continue
 		}
+		dataCnt++
 		var clr color.Color
 		if bl.HasData() {
 			if !bl.WasDownloaded {
@@ -166,9 +168,10 @@ func update(screen *ebiten.Image) error {
 			lattice.Blocks[i].Position)
 	}
 
-	for i := 0; i < len(lattice.Blocks); i++ {
+	numDatablocks = dataCnt
+	for i := numDatablocks; i < len(lattice.Blocks); i++ {
 		block := lattice.Blocks[i]
-		if !block.IsParity || !block.HasData() {
+		if !block.IsParity || (!block.HasData() && !block.IsUnavailable) {
 			continue
 		}
 		var leftPos, rightPos int

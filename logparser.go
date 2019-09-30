@@ -178,32 +178,34 @@ func (l *LogParser) ReadLog(lattice *entangler.Lattice) {
 				rightData := leftData.Right[j].Right[0]
 				if len(leftData.Right[j].Right) > 0 &&
 					rightData.Position == entry.RightPos {
-					leftData.Right[j].Data = make([]byte, 1)
+
 					leftData.Right[j].WasDownloaded = entry.WasDownloaded
 					if !entry.HasData || entry.Error != "" {
 						leftData.Right[j].IsUnavailable = true
+						fmt.Printf(" - Parity Unavailable. Left: %d, Right: %d\n", entry.LeftPos, entry.RightPos)
 					} else {
+						leftData.Right[j].Data = make([]byte, 1)
 						// Check if data was reconstructed.
-						if len(leftData.Left) > 0 && leftData.Left[j].HasData() && !leftData.HasData() {
-							leftData.Data = make([]byte, 1)
-							leftData.WasDownloaded = false
-						}
-						if len(rightData.Right) > 0 && rightData.Right[j].HasData() && !rightData.HasData() {
-							rightData.Data = make([]byte, 1)
-							rightData.WasDownloaded = false
-						}
+						// if len(leftData.Left) > 0 && leftData.Left[j].HasData() && !leftData.HasData() {
+						// 	leftData.Data = make([]byte, 1)
+						// 	leftData.WasDownloaded = false
+						// }
+						// if len(rightData.Right) > 0 && rightData.Right[j].HasData() && !rightData.HasData() {
+						// 	rightData.Data = make([]byte, 1)
+						// 	rightData.WasDownloaded = false
+						// }
 
 						// Check if Parity was reconstructed
-						if len(leftData.Left) > 0 && !leftData.Left[j].HasData() && leftData.HasData() {
-							leftData.Left[j].Data = make([]byte, 1)
-							leftData.Left[j].WasDownloaded = false
-							leftData.Left[j].IsUnavailable = false
-						}
-						if len(rightData.Right) > 0 && !rightData.Right[j].HasData() && rightData.HasData() {
-							rightData.Right[j].Data = make([]byte, 1)
-							rightData.Right[j].WasDownloaded = false
-							rightData.Right[j].IsUnavailable = false
-						}
+						// if len(leftData.Left) > 0 && !leftData.Left[j].HasData() && leftData.HasData() {
+						// 	leftData.Left[j].Data = make([]byte, 1)
+						// 	leftData.Left[j].WasDownloaded = false
+						// 	leftData.Left[j].IsUnavailable = false
+						// }
+						// if len(rightData.Right) > 0 && !rightData.Right[j].HasData() && rightData.HasData() {
+						// 	rightData.Right[j].Data = make([]byte, 1)
+						// 	rightData.Right[j].WasDownloaded = false
+						// 	rightData.Right[j].IsUnavailable = false
+						// }
 					}
 				}
 			}
