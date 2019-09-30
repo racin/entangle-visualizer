@@ -58,9 +58,8 @@ type TotalEntry struct {
 func NewTotalEntry(Datablocks, Parityblocks int, StartTime,
 	EndTime int64, err string, BlockEntries []BlockEntry) TotalEntry {
 
-	/// TODO: Sort BlockEntries by EndTime
 	sort.Slice(BlockEntries, func(i, j int) bool {
-		return BlockEntries[i].EndTime < BlockEntries[j].EndTime
+		return BlockEntries[i].StartTime < BlockEntries[j].StartTime
 	})
 
 	return TotalEntry{Datablocks: Datablocks, Parityblocks: Parityblocks,
@@ -90,7 +89,6 @@ func limitLength(s string, length int) string {
 }
 
 func (l *LogParser) ParseLog() error {
-	// Process each line.
 	file, err := os.Open(l.Path)
 	defer file.Close()
 
@@ -152,10 +150,6 @@ func (l *LogParser) ParseLog() error {
 	}
 
 	return nil
-
-	// If currently not on a TotalStruct, create one. "Downloaded file" finishes
-
-	// After TotalStruct is finished. Sort each BlockEntry
 }
 
 func max(x, y int) int {
