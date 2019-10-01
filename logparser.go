@@ -170,44 +170,41 @@ func (l *LogParser) ReadLog(lattice *entangler.Lattice) {
 		entry := l.TotalEntry[l.TotalCursor].BlockEntries[i]
 		if entry.IsParity {
 			fmt.Printf(" - Drawing Parity. Left: %d, Right: %d\n", entry.LeftPos, entry.RightPos)
-			// if entry.LeftPos < 1 || entry.RightPos > lattice.NumDataBlocks {
-			// 	continue
-			// }
+			if entry.RightPos > lattice.NumDataBlocks {
+				continue
+			} else if entry.LeftPos < 1 {
+				rightData := lattice.Blocks[entry.RightPos-1]
+				var j int
+				r, h, l := entangler.GetBackwardNeighbours(entry.RightPos, entangler.S, entangler.P)
+				if entry.LeftPos == r {
+					j = 1
+				} else if entry.LeftPos == h {
+					j = 0
+				} else if entry.LeftPos == l {
+					j = 2
+				}
+				rightData.Left[j].WasDownloaded = entry.WasDownloaded
+				if !entry.HasData || entry.Error != "" {
+					rightData.Left[j].IsUnavailable = true
+					fmt.Printf(" - Parity Unavailable. Left: %d, Right: %d\n", entry.LeftPos, entry.RightPos)
+				} else {
+					rightData.Left[j].Data = make([]byte, 1)
+				}
+			} else {
+				// TODO: Increment with numdatablocks .
+				leftData := lattice.Blocks[entry.LeftPos-1]
+				for j := 0; j < len(leftData.Right); j++ {
+					rightData := leftData.Right[j].Right[0]
+					if len(leftData.Right[j].Right) > 0 &&
+						rightData.Position == entry.RightPos {
 
-			// TODO: Increment with numdatablocks .
-			leftData := lattice.Blocks[entry.LeftPos-1]
-			for j := 0; j < len(leftData.Right); j++ {
-				rightData := leftData.Right[j].Right[0]
-				if len(leftData.Right[j].Right) > 0 &&
-					rightData.Position == entry.RightPos {
-
-					leftData.Right[j].WasDownloaded = entry.WasDownloaded
-					if !entry.HasData || entry.Error != "" {
-						leftData.Right[j].IsUnavailable = true
-						fmt.Printf(" - Parity Unavailable. Left: %d, Right: %d\n", entry.LeftPos, entry.RightPos)
-					} else {
-						leftData.Right[j].Data = make([]byte, 1)
-						// Check if data was reconstructed.
-						// if len(leftData.Left) > 0 && leftData.Left[j].HasData() && !leftData.HasData() {
-						// 	leftData.Data = make([]byte, 1)
-						// 	leftData.WasDownloaded = false
-						// }
-						// if len(rightData.Right) > 0 && rightData.Right[j].HasData() && !rightData.HasData() {
-						// 	rightData.Data = make([]byte, 1)
-						// 	rightData.WasDownloaded = false
-						// }
-
-						// Check if Parity was reconstructed
-						// if len(leftData.Left) > 0 && !leftData.Left[j].HasData() && leftData.HasData() {
-						// 	leftData.Left[j].Data = make([]byte, 1)
-						// 	leftData.Left[j].WasDownloaded = false
-						// 	leftData.Left[j].IsUnavailable = false
-						// }
-						// if len(rightData.Right) > 0 && !rightData.Right[j].HasData() && rightData.HasData() {
-						// 	rightData.Right[j].Data = make([]byte, 1)
-						// 	rightData.Right[j].WasDownloaded = false
-						// 	rightData.Right[j].IsUnavailable = false
-						// }
+						leftData.Right[j].WasDownloaded = entry.WasDownloaded
+						if !entry.HasData || entry.Error != "" {
+							leftData.Right[j].IsUnavailable = true
+							fmt.Printf(" - Parity Unavailable. Left: %d, Right: %d\n", entry.LeftPos, entry.RightPos)
+						} else {
+							leftData.Right[j].Data = make([]byte, 1)
+						}
 					}
 				}
 			}
