@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/golang/freetype/truetype"
 	"github.com/hajimehoshi/ebiten"
+	"github.com/hajimehoshi/ebiten/text"
 	"github.com/racin/entangle-visualizer/resources/fonts"
 	"github.com/racin/entangle/entangler"
 	"golang.org/x/image/font"
@@ -27,7 +28,7 @@ var (
 
 const (
 	windowTitle  = "Entangle Visualizer"
-	windowYSize  = 430
+	windowYSize  = 500
 	windowXSize  = 1840
 	dataFontSize = 24.0
 	dataFontDPI  = 72.0
@@ -123,7 +124,7 @@ func keyPressed(img *ebiten.Image, key ebiten.Key, presses int) {
 
 	logParser.ReadLog(lattice)
 
-	time.Sleep(300 * time.Millisecond)
+	time.Sleep(50 * time.Millisecond)
 	keyPresses++
 }
 
@@ -143,33 +144,12 @@ func update(screen *ebiten.Image) error {
 	}
 	screen.Fill(color.RGBA{0xff, 0xff, 0xff, 0xff})
 
-	numDatablocks := len(lattice.Blocks)
-	dataCnt := 0
-	for i := 0; i < numDatablocks; i++ {
-		bl := lattice.Blocks[i]
-		if bl.IsParity {
-			continue
-		}
-		dataCnt++
-		var clr color.Color
-		if bl.HasData() {
-			if !bl.WasDownloaded {
-				clr = color.RGBA{0x33, 0x99, 0xff, 0xff}
-			} else {
-				clr = color.RGBA{0x0, 0xff, 0, 0xff}
-			}
-		} else if bl.IsUnavailable {
-			clr = color.RGBA{0xff, 0x0, 0x0, 0xff}
-		} else {
-			clr = color.RGBA{0xc8, 0xc8, 0xc8, 0xff}
-		}
-		addDataBlock(screen, dataRadius, color.Black,
-			clr, color.Black,
-			lattice.Blocks[i].Position)
-	}
+	addCircle(screen, 400, 450, 25, color.Black, color.RGBA{0xff, 0, 0, 0xff})
+	text.Draw(screen, "Unavailable", dataFont, 430, 462, color.Black)
 
-	numDatablocks = dataCnt
-	for i := numDatablocks; i < len(lattice.Blocks); i++ {
+	numDatablocks := len(lattice.Blocks)
+
+	for i := 0; i < len(lattice.Blocks); i++ {
 		block := lattice.Blocks[i]
 		if !block.IsParity || (!block.HasData() && !block.IsUnavailable) {
 			continue
@@ -200,7 +180,7 @@ func update(screen *ebiten.Image) error {
 		} else if !block.WasDownloaded {
 			clr = color.RGBA{0x33, 0x99, 0xff, 0xff}
 		} else {
-			clr = color.Black
+			clr = color.RGBA{0x0, 0xff, 0, 0xff}
 		}
 		// switch block.Class {
 		// case entangler.Horizontal:
@@ -211,9 +191,29 @@ func update(screen *ebiten.Image) error {
 		// 	clr = color.Black
 		// }
 
-		addParityBetweenDatablock(screen, leftPos, rightPos, clr, 3)
+		addParityBetweenDatablock(screen, leftPos, rightPos, clr, 8)
 	}
-
+	for i := 0; i < numDatablocks; i++ {
+		bl := lattice.Blocks[i]
+		if bl.IsParity {
+			continue
+		}
+		var clr color.Color
+		if bl.HasData() {
+			if !bl.WasDownloaded {
+				clr = color.RGBA{0x33, 0x99, 0xff, 0xff}
+			} else {
+				clr = color.RGBA{0x0, 0xff, 0, 0xff}
+			}
+		} else if bl.IsUnavailable {
+			clr = color.RGBA{0xff, 0x0, 0x0, 0xff}
+		} else {
+			clr = color.RGBA{0xc8, 0xc8, 0xc8, 0xff}
+		}
+		addDataBlock(screen, dataRadius, color.Black,
+			clr, color.Black,
+			lattice.Blocks[i].Position)
+	}
 	return nil
 }
 

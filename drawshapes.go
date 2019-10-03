@@ -57,11 +57,24 @@ func addSquare(img *ebiten.Image, x, y, length, width float64, fill bool) {
 
 func addEdge(img *ebiten.Image, startX, startY, endX, endY float64, fill color.Color, width int) {
 	m := (endY - startY) / (endX - startX)
+	red := color.RGBA{0xff, 0x0, 0x0, 0xff}
+	xdiff := endX - startX
 	for i := startX; i < endX; i++ {
-		a := int(i * m)
+		if fill == red {
+			u := int(i) % 6
+			if u < 3 {
+				continue
+			}
+		}
+		a := int((xdiff - (endX - i)) * m)
 		ii := int(i)
 		for j := 0; j < width; j++ {
-			img.Set(ii, int(startY)+j+a, fill)
+			if j <= 1 || j+2 >= width {
+				img.Set(ii, int(startY)+j+a, color.Black)
+			} else {
+				img.Set(ii, int(startY)+j+a, fill)
+			}
+
 		}
 	}
 }
