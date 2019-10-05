@@ -59,7 +59,7 @@ func NewTotalEntry(Datablocks, Parityblocks int, StartTime,
 	EndTime int64, err string, BlockEntries []BlockEntry) TotalEntry {
 
 	sort.Slice(BlockEntries, func(i, j int) bool {
-		return BlockEntries[i].EndTime < BlockEntries[j].EndTime
+		return BlockEntries[i].StartTime < BlockEntries[j].StartTime
 	})
 
 	return TotalEntry{Datablocks: Datablocks, Parityblocks: Parityblocks,

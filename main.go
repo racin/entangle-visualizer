@@ -124,7 +124,7 @@ func keyPressed(img *ebiten.Image, key ebiten.Key, presses int) {
 
 	logParser.ReadLog(lattice)
 
-	time.Sleep(50 * time.Millisecond)
+	time.Sleep(300 * time.Millisecond)
 	keyPresses++
 }
 
@@ -146,6 +146,12 @@ func update(screen *ebiten.Image) error {
 
 	addCircle(screen, 400, 450, 25, color.Black, color.RGBA{0xff, 0, 0, 0xff})
 	text.Draw(screen, "Unavailable", dataFont, 430, 462, color.Black)
+
+	addCircle(screen, 650, 450, 25, color.Black, color.RGBA{0x33, 0x99, 0xff, 0xff})
+	text.Draw(screen, "Repaired", dataFont, 680, 462, color.Black)
+
+	addCircle(screen, 900, 450, 25, color.Black, color.RGBA{0x0, 0xff, 0, 0xff})
+	text.Draw(screen, "Downloaded", dataFont, 930, 462, color.Black)
 
 	numDatablocks := len(lattice.Blocks)
 

@@ -59,10 +59,16 @@ func addEdge(img *ebiten.Image, startX, startY, endX, endY float64, fill color.C
 	m := (endY - startY) / (endX - startX)
 	red := color.RGBA{0xff, 0x0, 0x0, 0xff}
 	xdiff := endX - startX
+	var edge color.Color
+	if fill == red {
+		edge = red
+	} else {
+		edge = color.Black
+	}
+
 	for i := startX; i < endX; i++ {
 		if fill == red {
-			u := int(i) % 6
-			if u < 3 {
+			if int(i)%6 < 3 {
 				continue
 			}
 		}
@@ -70,7 +76,7 @@ func addEdge(img *ebiten.Image, startX, startY, endX, endY float64, fill color.C
 		ii := int(i)
 		for j := 0; j < width; j++ {
 			if j <= 1 || j+2 >= width {
-				img.Set(ii, int(startY)+j+a, color.Black)
+				img.Set(ii, int(startY)+j+a, edge)
 			} else {
 				img.Set(ii, int(startY)+j+a, fill)
 			}
