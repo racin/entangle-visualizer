@@ -165,7 +165,7 @@ func min(x, y int) int {
 	return x
 }
 func (l *LogParser) ReadLog(lattice *entangler.Lattice) {
-	for i := 0; i < min(max(0, l.BlockCursor), len(l.TotalEntry[l.TotalCursor].BlockEntries)); i++ {
+	for i := 0; i < l.BlockCursor; i++ {
 		fmt.Printf("Reading log. Cursor: %d", i)
 		entry := l.TotalEntry[l.TotalCursor].BlockEntries[i]
 		if entry.IsParity {

@@ -120,6 +120,9 @@ func keyPressed(img *ebiten.Image, key ebiten.Key, presses int) {
 		}
 	}
 
+	logParser.TotalCursor = min(max(0, logParser.TotalCursor), len(logParser.TotalEntry)-1)
+	logParser.BlockCursor = min(max(0, logParser.BlockCursor), len(logParser.TotalEntry[logParser.TotalCursor].BlockEntries))
+
 	logParser.ReadLog(lattice)
 
 	time.Sleep(300 * time.Millisecond)
@@ -147,6 +150,14 @@ func update(screen *ebiten.Image) error {
 
 	addCircle(screen, 900, 450, 25, color.Black, color.RGBA{0x0, 0xff, 0, 0xff})
 	text.Draw(screen, "Downloaded", dataFont, 930, 462, color.Black)
+
+	text.Draw(screen, fmt.Sprintf("Entry: %d / %d", logParser.TotalCursor+1,
+		len(logParser.TotalEntry)),
+		dataFont, 1330, 462, color.Black)
+
+	text.Draw(screen, fmt.Sprintf("Event: %d / %d", logParser.BlockCursor,
+		len(logParser.TotalEntry[logParser.TotalCursor].BlockEntries)),
+		dataFont, 1130, 462, color.Black)
 
 	numDatablocks := len(lattice.Blocks)
 
