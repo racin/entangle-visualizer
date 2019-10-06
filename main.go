@@ -16,14 +16,13 @@ import (
 )
 
 var (
-	dataFont          font.Face
-	lattice           *entangler.Lattice
-	didDrawDataBlocks bool
-	circles           map[circleKey]*ebiten.Image
-	keyPresses        int
-	keyLock           sync.Mutex
-	keyLockBool       bool
-	logParser         *LogParser
+	dataFont    font.Face
+	lattice     *entangler.Lattice
+	circles     map[circleKey]*ebiten.Image
+	keyPresses  int
+	keyLock     sync.Mutex
+	keyLockBool bool
+	logParser   *LogParser
 )
 
 const (
@@ -41,7 +40,6 @@ const (
 )
 
 func init() {
-	didDrawDataBlocks = false
 	tt, err := truetype.Parse(fonts.OpenSans_Regular_tff)
 	if err != nil {
 		log.Fatal(err)
@@ -139,9 +137,6 @@ func update(screen *ebiten.Image) error {
 		return nil
 	}
 
-	if !didDrawDataBlocks {
-		didDrawDataBlocks = true
-	}
 	screen.Fill(color.RGBA{0xff, 0xff, 0xff, 0xff})
 
 	addCircle(screen, 400, 450, 25, color.Black, color.RGBA{0xff, 0, 0, 0xff})
