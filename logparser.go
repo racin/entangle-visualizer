@@ -3,12 +3,14 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"github.com/racin/entangle/entangler"
 	"io"
 	"os"
 	"sort"
 	"strconv"
 	"strings"
+
+	"github.com/racin/snarl/entangler"
+	"github.com/racin/snarl/swarmconnector"
 )
 
 // fmt.Printf("%t,%d,%d,%d,%t,%d,%d\n", block.IsParity, block.Position, block.LeftPos(0), block.RightPos(0), block.HasData(), start, time.Now().UnixNano())
@@ -175,7 +177,7 @@ func (l *LogParser) ReadLog(lattice *entangler.Lattice) {
 			} else if entry.LeftPos < 1 {
 				rightData := lattice.Blocks[entry.RightPos-1]
 				var j int
-				r, h, l := entangler.GetBackwardNeighbours(entry.RightPos, entangler.S, entangler.P)
+				r, h, l := entangler.GetBackwardNeighbours(entry.RightPos, lattice.S, lattice.P)
 				if entry.LeftPos == r {
 					j = 1
 				} else if entry.LeftPos == h {
@@ -188,7 +190,7 @@ func (l *LogParser) ReadLog(lattice *entangler.Lattice) {
 					rightData.Left[j].IsUnavailable = true
 					fmt.Printf(" - Parity Unavailable. Left: %d, Right: %d\n", entry.LeftPos, entry.RightPos)
 				} else {
-					rightData.Left[j].Data = make([]byte, 1)
+					rightData.Left[j].Data = make([]byte, swarmconnector.ChunkSizeOffset+1)
 				}
 			} else {
 				// TODO: Increment with numdatablocks .
@@ -203,7 +205,7 @@ func (l *LogParser) ReadLog(lattice *entangler.Lattice) {
 							leftData.Right[j].IsUnavailable = true
 							fmt.Printf(" - Parity Unavailable. Left: %d, Right: %d\n", entry.LeftPos, entry.RightPos)
 						} else {
-							leftData.Right[j].Data = make([]byte, 1)
+							leftData.Right[j].Data = make([]byte, swarmconnector.ChunkSizeOffset+1)
 						}
 					}
 				}
@@ -215,7 +217,7 @@ func (l *LogParser) ReadLog(lattice *entangler.Lattice) {
 				b.IsUnavailable = true
 			} else {
 				fmt.Printf(" - Data Reconstructed. Position:%d\n", entry.Position)
-				b.Data = make([]byte, 1)
+				b.Data = make([]byte, swarmconnector.ChunkSizeOffset+1)
 				b.WasDownloaded = entry.WasDownloaded
 			}
 		}

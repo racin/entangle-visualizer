@@ -1,18 +1,20 @@
 package main
 
 import (
+	"context"
 	"fmt"
-	"github.com/golang/freetype/truetype"
-	"github.com/hajimehoshi/ebiten"
-	"github.com/hajimehoshi/ebiten/text"
-	"github.com/racin/entangle-visualizer/resources/fonts"
-	"github.com/racin/entangle/entangler"
-	"golang.org/x/image/font"
 	"image/color"
 	"log"
 	"os"
 	"sync"
 	"time"
+
+	"github.com/golang/freetype/truetype"
+	"github.com/hajimehoshi/ebiten"
+	"github.com/hajimehoshi/ebiten/text"
+	"github.com/racin/entangle-visualizer/resources/fonts"
+	"github.com/racin/snarl/entangler"
+	"golang.org/x/image/font"
 )
 
 var (
@@ -31,12 +33,12 @@ const (
 	windowXSize  = 1840
 	dataFontSize = 24.0
 	dataFontDPI  = 72.0
-	dataPrRow    = 23 // 23
-	xSpace       = 80.0
-	xOffset      = 40.0
-	ySpace       = 80.0
-	yOffset      = 50.0
-	dataRadius   = 25.0
+	//dataPrRow    = 23 // 23
+	xSpace     = 80.0
+	xOffset    = 40.0
+	ySpace     = 80.0
+	yOffset    = 50.0
+	dataRadius = 25.0
 )
 
 func init() {
@@ -53,7 +55,9 @@ func init() {
 			os.Exit(1)
 		}
 	}
-	lattice = entangler.NewLattice(3, 5, 5, latticePath, nil)
+	//lattice = entangler.NewLattice(3, 5, 5, latticePath, nil)
+	lattice = entangler.NewLattice(context.TODO(), 3, 5, 5, 200)
+	lattice.RunInit()
 
 	if _, err := os.Stat(logPath); os.IsNotExist(err) {
 		logPath = "resources/output.txt"
@@ -84,25 +88,25 @@ func keyPressed(img *ebiten.Image, key ebiten.Key, presses int) {
 		return
 	}
 
-	if key.String() == "Left" {
+	if key.String() == ebiten.KeyLeft.String() {
 		logParser.BlockCursor--
 		for i := 0; i < len(lattice.Blocks); i++ {
 			lattice.Blocks[i].Data = nil
 			lattice.Blocks[i].IsUnavailable = false
 			lattice.Blocks[i].WasDownloaded = false
 		}
-	} else if key.String() == "Up" {
+	} else if key.String() == ebiten.KeyUp.String() {
 		logParser.BlockCursor = logParser.BlockCursor + 10
-	} else if key.String() == "Down" {
+	} else if key.String() == ebiten.KeyDown.String() {
 		logParser.BlockCursor = logParser.BlockCursor - 10
 		for i := 0; i < len(lattice.Blocks); i++ {
 			lattice.Blocks[i].Data = nil
 			lattice.Blocks[i].IsUnavailable = false
 			lattice.Blocks[i].WasDownloaded = false
 		}
-	} else if key.String() == "Right" {
+	} else if key.String() == ebiten.KeyRight.String() {
 		logParser.BlockCursor++
-	} else if key.String() == "1" {
+	} else if key.String() == ebiten.Key1.String() {
 		logParser.BlockCursor = 0
 		logParser.TotalCursor--
 		for i := 0; i < len(lattice.Blocks); i++ {
@@ -110,7 +114,7 @@ func keyPressed(img *ebiten.Image, key ebiten.Key, presses int) {
 			lattice.Blocks[i].IsUnavailable = false
 			lattice.Blocks[i].WasDownloaded = false
 		}
-	} else if key.String() == "2" {
+	} else if key.String() == ebiten.Key2.String() {
 		logParser.BlockCursor = 0
 		logParser.TotalCursor++
 		for i := 0; i < len(lattice.Blocks); i++ {
@@ -118,6 +122,12 @@ func keyPressed(img *ebiten.Image, key ebiten.Key, presses int) {
 			lattice.Blocks[i].IsUnavailable = false
 			lattice.Blocks[i].WasDownloaded = false
 		}
+	} else if key.String() == ebiten.Key3.String() {
+		ebiten.SetScreenScale(0.5)
+		ebiten.SetScreenSize(windowXSize*2, windowYSize*2)
+	} else if key.String() == ebiten.Key4.String() {
+		ebiten.SetScreenScale(1)
+		ebiten.SetScreenSize(windowXSize, windowYSize)
 	}
 
 	logParser.TotalCursor = min(max(0, logParser.TotalCursor), len(logParser.TotalEntry)-1)
@@ -136,6 +146,7 @@ func update(screen *ebiten.Image) error {
 			break
 		}
 	}
+
 	if ebiten.IsDrawingSkipped() {
 		return nil
 	}
@@ -170,7 +181,7 @@ func update(screen *ebiten.Image) error {
 
 		if len(block.Left) == 0 || block.Left[0].Position < 1 {
 			rightPos = block.Right[0].Position + lattice.NumDataBlocks
-			r, h, l := entangler.GetBackwardNeighbours(rightPos, entangler.S, entangler.P)
+			r, h, l := entangler.GetBackwardNeighbours(rightPos, lattice.S, lattice.P)
 			switch block.Class {
 			case entangler.Horizontal:
 				leftPos = h
