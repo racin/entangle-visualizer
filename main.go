@@ -136,12 +136,8 @@ func keyPressed(img *ebiten.Image, key ebiten.Key, presses int) {
 		}
 	} else if key.String() == ebiten.Key3.String() {
 		zoom -= zoominc
-		ebiten.SetScreenScale(zoom)
-		ebiten.SetScreenSize(int(float64(windowXSize)/zoom), windowYSize)
 	} else if key.String() == ebiten.Key4.String() {
 		zoom += zoominc
-		ebiten.SetScreenScale(zoom)
-		ebiten.SetScreenSize(int(float64(windowXSize)/zoom), windowYSize)
 	} else if key.String() == ebiten.Key5.String() {
 		columnOffset += columninc
 	} else if key.String() == ebiten.Key6.String() {
@@ -161,15 +157,24 @@ func keyPressed(img *ebiten.Image, key ebiten.Key, presses int) {
 }
 
 func update(screen *ebiten.Image) error {
+	zooming := false
 	for k := ebiten.Key(0); k <= ebiten.KeyMax; k++ {
 		if ebiten.IsKeyPressed(k) {
 			go keyPressed(screen, k, keyPresses)
+			if k.String() == ebiten.Key3.String() || k.String() == ebiten.Key4.String() {
+				zooming = true
+			}
+
 			break
 		}
 	}
 
 	if ebiten.IsDrawingSkipped() {
 		return nil
+	}
+	if zooming {
+		ebiten.SetScreenScale(zoom)
+		ebiten.SetScreenSize(int(float64(windowXSize)/zoom), windowYSize)
 	}
 
 	screen.Fill(color.RGBA{0xff, 0xff, 0xff, 0xff})
