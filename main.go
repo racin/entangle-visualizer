@@ -18,17 +18,17 @@ import (
 )
 
 var (
-	dataFont    font.Face
-	lattice     *entangler.Lattice
-	circles     map[circleKey]*ebiten.Image
-	keyPresses  int
-	keyLock     sync.Mutex
-	keyLockBool bool
-	logParser   *LogParser
-	firstColumn int
-	columninc   int     = 4
-	zoom        float64 = 1
-	zoominc     float64 = 0.2
+	dataFont     font.Face
+	lattice      *entangler.Lattice
+	circles      map[circleKey]*ebiten.Image
+	keyPresses   int
+	keyLock      sync.Mutex
+	keyLockBool  bool
+	logParser    *LogParser
+	columnOffset int
+	columninc    int     = 4
+	zoom         float64 = 0.46
+	zoominc      float64 = 0.2
 )
 
 const (
@@ -60,7 +60,7 @@ func init() {
 		}
 	}
 	//lattice = entangler.NewLattice(3, 5, 5, latticePath, nil)
-	lattice = entangler.NewLattice(context.TODO(), 3, 5, 5, 200)
+	lattice = entangler.NewLattice(context.TODO(), 3, 5, 5, 259)
 	lattice.RunInit()
 
 	if _, err := os.Stat(logPath); os.IsNotExist(err) {
@@ -135,9 +135,10 @@ func keyPressed(img *ebiten.Image, key ebiten.Key, presses int) {
 		ebiten.SetScreenScale(zoom)
 		ebiten.SetScreenSize(int(windowXSize/zoom), windowYSize)
 	} else if key.String() == ebiten.Key5.String() {
-		firstColumn += columninc
+		columnOffset += columninc
 	} else if key.String() == ebiten.Key6.String() {
-		firstColumn -= columninc
+		newColumn := columnOffset - columninc
+		columnOffset = max(0, newColumn)
 	}
 
 	logParser.TotalCursor = min(max(0, logParser.TotalCursor), len(logParser.TotalEntry)-1)
@@ -182,7 +183,7 @@ func update(screen *ebiten.Image) error {
 
 	numDatablocks := len(lattice.Blocks)
 
-	for i := (firstColumn * 5); i < len(lattice.Blocks); i++ {
+	for i := (columnOffset * 5); i < len(lattice.Blocks); i++ {
 		block := lattice.Blocks[i]
 		if !block.IsParity || (!block.HasData() && !block.IsUnavailable) {
 			continue
@@ -224,10 +225,10 @@ func update(screen *ebiten.Image) error {
 		// 	clr = color.Black
 		// }
 
-		addParityBetweenDatablock(screen, leftPos, rightPos, clr, 8)
+		addParityBetweenDatablock(screen, leftPos, rightPos, clr, 8, -columnOffset)
 	}
-	for i := (firstColumn * 5); i < numDatablocks; i++ {
-		bl := lattice.Blocks[i]
+	for i := (columnOffset * 5); i < (numDatablocks + (columnOffset * 5)); i++ {
+		bl := lattice.Blocks[i%numDatablocks]
 		if bl.IsParity {
 			continue
 		}
@@ -243,9 +244,14 @@ func update(screen *ebiten.Image) error {
 		} else {
 			clr = color.RGBA{0xc8, 0xc8, 0xc8, 0xff}
 		}
+		co := columnOffset
+		if i >= numDatablocks {
+			co -= lattice.NumDataBlocks/lattice.HorizontalStrands + 1
+		}
+		fmt.Printf("Drawing %v - %v\n", i, i%numDatablocks)
 		addDataBlock(screen, dataRadius, color.Black,
 			clr, color.Black,
-			lattice.Blocks[i].Position, firstColumn)
+			lattice.Blocks[i%numDatablocks].Position, co)
 	}
 	return nil
 }
@@ -253,7 +259,7 @@ func update(screen *ebiten.Image) error {
 func main() {
 	ebiten.SetMaxTPS(60)
 	ebiten.SetRunnableInBackground(true)
-	if err := ebiten.Run(update, windowXSize, windowYSize, 1, windowTitle); err != nil {
+	if err := ebiten.Run(update, int(windowXSize/zoom), windowYSize, zoom, windowTitle); err != nil {
 		log.Fatal(err)
 	}
 }
