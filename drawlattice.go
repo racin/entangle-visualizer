@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"image/color"
 	"math"
 	"strconv"
@@ -11,6 +12,12 @@ import (
 )
 
 func addParityBetweenDatablock(img *ebiten.Image, dataLeft, dataRight int, fill color.Color, width, columnOffset int) {
+	defer func() {
+		if rec := recover(); rec != nil {
+			fmt.Printf("Recovered.... %v\n", rec)
+		}
+	}()
+
 	var dataLeftRow, dataRightRow float64
 	if dataLeftRow = float64(dataLeft % entangler.HorizontalStrands); dataLeftRow == 0 {
 		dataLeftRow = entangler.HorizontalStrands
