@@ -27,14 +27,15 @@ var (
 	logParser    *LogParser
 	columnOffset int
 	columninc    int     = 4
-	zoom         float64 = 0.46
+	zoom         float64 = 0.6
 	zoominc      float64 = 0.2
+	windowYSize  int     = 500
+	windowXSize  int
 )
 
 const (
-	windowTitle  = "Entangle Visualizer"
-	windowYSize  = 500
-	windowXSize  = 1920
+	windowTitle = "Entangle Visualizer"
+
 	dataFontSize = 24.0
 	dataFontDPI  = 72.0
 	//dataPrRow    = 23 // 23
@@ -46,6 +47,7 @@ const (
 )
 
 func init() {
+
 	tt, err := truetype.Parse(fonts.OpenSans_Regular_tff)
 	if err != nil {
 		log.Fatal(err)
@@ -62,6 +64,10 @@ func init() {
 	//lattice = entangler.NewLattice(3, 5, 5, latticePath, nil)
 	lattice = entangler.NewLattice(context.TODO(), 3, 5, 5, 259)
 	lattice.RunInit()
+	w, h := ebiten.ScreenSizeInFullscreen()
+	windowXSize, windowYSize = w-10, int(float64(h)*0.4)
+	zoom = float64(windowXSize) / (float64(xOffset) + (float64(lattice.NumDataBlocks/lattice.HorizontalStrands)+float64(0.5))*xSpace)
+	fmt.Printf("X: %v, Screen: %v, Zoom: %v\n", (float64(xOffset) + (float64(lattice.NumDataBlocks/lattice.HorizontalStrands)+float64(0.5))*xSpace), windowXSize, zoom)
 
 	if _, err := os.Stat(logPath); os.IsNotExist(err) {
 		logPath = "resources/output.txt"
@@ -92,7 +98,9 @@ func keyPressed(img *ebiten.Image, key ebiten.Key, presses int) {
 		return
 	}
 
-	if key.String() == ebiten.KeyLeft.String() {
+	if key.String() == ebiten.KeyH.String() {
+		printHelp()
+	} else if key.String() == ebiten.KeyLeft.String() {
 		logParser.BlockCursor--
 		for i := 0; i < len(lattice.Blocks); i++ {
 			lattice.Blocks[i].Data = nil
@@ -131,11 +139,11 @@ func keyPressed(img *ebiten.Image, key ebiten.Key, presses int) {
 	} else if key.String() == ebiten.Key3.String() {
 		zoom -= zoominc
 		ebiten.SetScreenScale(zoom)
-		ebiten.SetScreenSize(int(windowXSize/zoom), windowYSize)
+		ebiten.SetScreenSize(int(float64(windowXSize)/zoom), windowYSize)
 	} else if key.String() == ebiten.Key4.String() {
 		zoom += zoominc
 		ebiten.SetScreenScale(zoom)
-		ebiten.SetScreenSize(int(windowXSize/zoom), windowYSize)
+		ebiten.SetScreenSize(int(float64(windowXSize)/zoom), windowYSize)
 	} else if key.String() == ebiten.Key5.String() {
 		columnOffset += columninc
 	} else if key.String() == ebiten.Key6.String() {
@@ -263,7 +271,11 @@ func update(screen *ebiten.Image) error {
 func main() {
 	ebiten.SetMaxTPS(60)
 	ebiten.SetRunnableInBackground(true)
-	if err := ebiten.Run(update, int(windowXSize/zoom), windowYSize, zoom, windowTitle); err != nil {
+	if err := ebiten.Run(update, int(float64(windowXSize)/zoom), windowYSize, zoom, windowTitle); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func printHelp() {
+	fmt.Print("Help!\n")
 }
