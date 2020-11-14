@@ -26,12 +26,15 @@ var (
 	keyLockBool bool
 	logParser   *LogParser
 	firstColumn int
+	columninc   int     = 4
+	zoom        float64 = 1
+	zoominc     float64 = 0.2
 )
 
 const (
 	windowTitle  = "Entangle Visualizer"
 	windowYSize  = 500
-	windowXSize  = 1840
+	windowXSize  = 1920
 	dataFontSize = 24.0
 	dataFontDPI  = 72.0
 	//dataPrRow    = 23 // 23
@@ -124,15 +127,17 @@ func keyPressed(img *ebiten.Image, key ebiten.Key, presses int) {
 			lattice.Blocks[i].WasDownloaded = false
 		}
 	} else if key.String() == ebiten.Key3.String() {
-		ebiten.SetScreenScale(0.5)
-		ebiten.SetScreenSize(windowXSize*2, windowYSize*2)
+		zoom -= zoominc
+		ebiten.SetScreenScale(zoom)
+		ebiten.SetScreenSize(int(windowXSize/zoom), windowYSize)
 	} else if key.String() == ebiten.Key4.String() {
-		ebiten.SetScreenScale(1)
-		ebiten.SetScreenSize(windowXSize, windowYSize)
+		zoom += zoominc
+		ebiten.SetScreenScale(zoom)
+		ebiten.SetScreenSize(int(windowXSize/zoom), windowYSize)
 	} else if key.String() == ebiten.Key5.String() {
-		firstColumn += 1
+		firstColumn += columninc
 	} else if key.String() == ebiten.Key6.String() {
-		firstColumn -= 1
+		firstColumn -= columninc
 	}
 
 	logParser.TotalCursor = min(max(0, logParser.TotalCursor), len(logParser.TotalEntry)-1)
