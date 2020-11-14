@@ -1,12 +1,13 @@
 package main
 
 import (
-	"github.com/hajimehoshi/ebiten"
-	"github.com/hajimehoshi/ebiten/text"
-	"github.com/racin/entangle/entangler"
 	"image/color"
 	"math"
 	"strconv"
+
+	"github.com/hajimehoshi/ebiten"
+	"github.com/hajimehoshi/ebiten/text"
+	"github.com/racin/entangle/entangler"
 )
 
 func addParityBetweenDatablock(img *ebiten.Image, dataLeft, dataRight int, fill color.Color, width int) {
@@ -70,11 +71,11 @@ func addParityBetweenDatablock(img *ebiten.Image, dataLeft, dataRight int, fill 
 	}
 }
 
-func addDataBlock(img *ebiten.Image, radius float64, edge, fill, textColor color.Color, index int) {
+func addDataBlock(img *ebiten.Image, radius float64, edge, fill, textColor color.Color, index, columnOffset int) {
 	var row, column int
 	i := index - 1
 	row = i % entangler.HorizontalStrands
-	column = int(i / entangler.HorizontalStrands)
+	column = int(i/entangler.HorizontalStrands) - columnOffset
 
 	x := float64(xOffset + (xSpace * column))
 	y := float64(yOffset + (ySpace * (row)))

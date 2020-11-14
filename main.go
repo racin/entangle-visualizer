@@ -25,6 +25,7 @@ var (
 	keyLock     sync.Mutex
 	keyLockBool bool
 	logParser   *LogParser
+	firstColumn int
 )
 
 const (
@@ -128,6 +129,10 @@ func keyPressed(img *ebiten.Image, key ebiten.Key, presses int) {
 	} else if key.String() == ebiten.Key4.String() {
 		ebiten.SetScreenScale(1)
 		ebiten.SetScreenSize(windowXSize, windowYSize)
+	} else if key.String() == ebiten.Key5.String() {
+		firstColumn += 1
+	} else if key.String() == ebiten.Key6.String() {
+		firstColumn -= 1
 	}
 
 	logParser.TotalCursor = min(max(0, logParser.TotalCursor), len(logParser.TotalEntry)-1)
@@ -172,7 +177,7 @@ func update(screen *ebiten.Image) error {
 
 	numDatablocks := len(lattice.Blocks)
 
-	for i := 0; i < len(lattice.Blocks); i++ {
+	for i := (firstColumn * 5); i < len(lattice.Blocks); i++ {
 		block := lattice.Blocks[i]
 		if !block.IsParity || (!block.HasData() && !block.IsUnavailable) {
 			continue
@@ -216,7 +221,7 @@ func update(screen *ebiten.Image) error {
 
 		addParityBetweenDatablock(screen, leftPos, rightPos, clr, 8)
 	}
-	for i := 0; i < numDatablocks; i++ {
+	for i := (firstColumn * 5); i < numDatablocks; i++ {
 		bl := lattice.Blocks[i]
 		if bl.IsParity {
 			continue
@@ -235,7 +240,7 @@ func update(screen *ebiten.Image) error {
 		}
 		addDataBlock(screen, dataRadius, color.Black,
 			clr, color.Black,
-			lattice.Blocks[i].Position)
+			lattice.Blocks[i].Position, firstColumn)
 	}
 	return nil
 }
