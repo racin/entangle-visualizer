@@ -67,7 +67,7 @@ func init() {
 	w, h := ebiten.ScreenSizeInFullscreen()
 	windowXSize, windowYSize = w-10, int(float64(h)*0.4)
 	zoom = float64(windowXSize) / (float64(xOffset) + (float64(lattice.NumDataBlocks/lattice.HorizontalStrands)+float64(0.5))*xSpace)
-	fmt.Printf("X: %v, Screen: %v, Zoom: %v\n", (float64(xOffset) + (float64(lattice.NumDataBlocks/lattice.HorizontalStrands)+float64(0.5))*xSpace), windowXSize, zoom)
+	// fmt.Printf("X: %v, Screen: %v, Zoom: %v\n", (float64(xOffset) + (float64(lattice.NumDataBlocks/lattice.HorizontalStrands)+float64(0.5))*xSpace), windowXSize, zoom)
 
 	if _, err := os.Stat(logPath); os.IsNotExist(err) {
 		logPath = "resources/output.txt"
@@ -98,9 +98,7 @@ func keyPressed(img *ebiten.Image, key ebiten.Key, presses int) {
 		return
 	}
 
-	if key.String() == ebiten.KeyH.String() {
-		printHelp()
-	} else if key.String() == ebiten.KeyLeft.String() {
+	if key.String() == ebiten.KeyLeft.String() {
 		logParser.BlockCursor--
 		for i := 0; i < len(lattice.Blocks); i++ {
 			lattice.Blocks[i].Data = nil
@@ -155,7 +153,9 @@ func keyPressed(img *ebiten.Image, key ebiten.Key, presses int) {
 	logParser.BlockCursor = min(max(0, logParser.BlockCursor), len(logParser.TotalEntry[logParser.TotalCursor].BlockEntries))
 
 	logParser.ReadLog(lattice)
-
+	if key.String() == ebiten.KeyH.String() {
+		printHelp()
+	}
 	time.Sleep(300 * time.Millisecond)
 	keyPresses++
 }
@@ -271,11 +271,27 @@ func update(screen *ebiten.Image) error {
 func main() {
 	ebiten.SetMaxTPS(60)
 	ebiten.SetRunnableInBackground(true)
+	printHelp()
 	if err := ebiten.Run(update, int(float64(windowXSize)/zoom), windowYSize, zoom, windowTitle); err != nil {
 		log.Fatal(err)
 	}
 }
 
 func printHelp() {
-	fmt.Print("Help!\n")
+	fmt.Printf("--- Help for Entangle Visualizer ---\n" +
+		" [h]       - This help.\n" +
+		"--- Navigation ---\n" +
+		" [q]       - Scroll to the end of the log.\n" +
+		" [R ARROW] - Next event in the log.\n" +
+		" [L ARROW] - Previous event in the log.\n" +
+		" [U ARROW] - Next 10 events in the log.\n" +
+		" [D ARROW] - Previous 10 events in the log.\n" +
+		" [1]       - Jump to the previous log entry.\n" +
+		" [2]       - Jump to the next log entry.\n" +
+		"--- Window ---\n" +
+		" [3]       - Zoom out.\n" +
+		" [4]       - Zoom in.\n" +
+		" [5]       - Scroll entire window to the left.\n" +
+		" [6]       - Scroll entire window to the right.\n",
+	)
 }
