@@ -181,10 +181,10 @@ func update(screen *ebiten.Image) error {
 		len(logParser.TotalEntry[logParser.TotalCursor].BlockEntries)),
 		dataFont, 1130, 462, color.Black)
 
-	numDatablocks := len(lattice.Blocks)
+	numBlocks := len(lattice.Blocks)
 
-	for i := (columnOffset * 5); i < len(lattice.Blocks); i++ {
-		block := lattice.Blocks[i]
+	for i := (columnOffset * 5); i < (numBlocks + (columnOffset * 5)); i++ {
+		block := lattice.Blocks[i%numBlocks]
 		if !block.IsParity || (!block.HasData() && !block.IsUnavailable) {
 			continue
 		}
@@ -210,11 +210,11 @@ func update(screen *ebiten.Image) error {
 
 		var clr color.Color
 		if !block.HasData() && block.IsUnavailable {
-			clr = color.RGBA{0xff, 0, 0, 0xff}
+			clr = color.RGBA{0xff, 0, 0, 0xff} // Dotted red line
 		} else if !block.WasDownloaded {
-			clr = color.RGBA{0x33, 0x99, 0xff, 0xff}
+			clr = color.RGBA{0x33, 0x99, 0xff, 0xff} // Blue line
 		} else {
-			clr = color.RGBA{0x0, 0xff, 0, 0xff}
+			clr = color.RGBA{0x0, 0xff, 0, 0xff} // Green line
 		}
 		// switch block.Class {
 		// case entangler.Horizontal:
@@ -224,11 +224,14 @@ func update(screen *ebiten.Image) error {
 		// case entangler.Left:
 		// 	clr = color.Black
 		// }
-
-		addParityBetweenDatablock(screen, leftPos, rightPos, clr, 8, -columnOffset)
+		co := -columnOffset
+		if i >= numBlocks {
+			co += lattice.NumDataBlocks/lattice.HorizontalStrands + 1
+		}
+		addParityBetweenDatablock(screen, leftPos, rightPos, clr, 8, co)
 	}
-	for i := (columnOffset * 5); i < (numDatablocks + (columnOffset * 5)); i++ {
-		bl := lattice.Blocks[i%numDatablocks]
+	for i := (columnOffset * 5); i < (numBlocks + (columnOffset * 5)); i++ {
+		bl := lattice.Blocks[i%numBlocks]
 		if bl.IsParity {
 			continue
 		}
@@ -245,13 +248,13 @@ func update(screen *ebiten.Image) error {
 			clr = color.RGBA{0xc8, 0xc8, 0xc8, 0xff}
 		}
 		co := columnOffset
-		if i >= numDatablocks {
+		if i >= numBlocks {
 			co -= lattice.NumDataBlocks/lattice.HorizontalStrands + 1
 		}
-		fmt.Printf("Drawing %v - %v\n", i, i%numDatablocks)
+		fmt.Printf("Drawing %v - %v\n", i, i%numBlocks)
 		addDataBlock(screen, dataRadius, color.Black,
 			clr, color.Black,
-			lattice.Blocks[i%numDatablocks].Position, co)
+			lattice.Blocks[i%numBlocks].Position, co)
 	}
 	return nil
 }
