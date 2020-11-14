@@ -1,9 +1,10 @@
 package main
 
 import (
-	"github.com/hajimehoshi/ebiten"
 	"image/color"
 	"math"
+
+	"github.com/hajimehoshi/ebiten"
 )
 
 type circleKey struct {
@@ -68,7 +69,7 @@ func addEdge(img *ebiten.Image, startX, startY, endX, endY float64, fill color.C
 
 	for i := startX; i < endX; i++ {
 		if fill == red {
-			if int(i)%6 < 3 {
+			if math.Mod(math.Abs(i), 6) < 3 {
 				continue
 			}
 		}

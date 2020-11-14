@@ -30,10 +30,10 @@ func addParityBetweenDatablock(img *ebiten.Image, dataLeft, dataRight int, fill 
 		y := float64(yOffset + (ySpace * (row)))
 	*/
 	if dataLeftRow == dataRightRow { // Horizontal
-		dataLeftXpos = xOffset + dataLeftColumn*xSpace + dataRadius
+		dataLeftXpos = xOffset + dataLeftColumn*xSpace
 		dataLeftYpos = yOffset + (ySpace * (dataLeftRow - 1))
 
-		dataRightXpos = xOffset + dataRightColumn*xSpace - dataRadius + 1
+		dataRightXpos = xOffset + dataRightColumn*xSpace + 1
 		dataRightYpos = yOffset + (ySpace * (dataRightRow - 1))
 		addEdge(img, dataLeftXpos, dataLeftYpos, dataRightXpos, dataRightYpos, fill, width)
 	} else if dataLeftRow+1 == dataRightRow { // Right

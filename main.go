@@ -99,6 +99,8 @@ func keyPressed(img *ebiten.Image, key ebiten.Key, presses int) {
 			lattice.Blocks[i].IsUnavailable = false
 			lattice.Blocks[i].WasDownloaded = false
 		}
+	} else if key.String() == ebiten.KeyRight.String() {
+		logParser.BlockCursor++
 	} else if key.String() == ebiten.KeyUp.String() {
 		logParser.BlockCursor = logParser.BlockCursor + 10
 	} else if key.String() == ebiten.KeyDown.String() {
@@ -108,8 +110,8 @@ func keyPressed(img *ebiten.Image, key ebiten.Key, presses int) {
 			lattice.Blocks[i].IsUnavailable = false
 			lattice.Blocks[i].WasDownloaded = false
 		}
-	} else if key.String() == ebiten.KeyRight.String() {
-		logParser.BlockCursor++
+	} else if key.String() == ebiten.KeyQ.String() {
+		logParser.BlockCursor = len(logParser.TotalEntry[logParser.TotalCursor].BlockEntries)
 	} else if key.String() == ebiten.Key1.String() {
 		logParser.BlockCursor = 0
 		logParser.TotalCursor--
@@ -251,7 +253,6 @@ func update(screen *ebiten.Image) error {
 		if i >= numBlocks {
 			co -= lattice.NumDataBlocks/lattice.HorizontalStrands + 1
 		}
-		fmt.Printf("Drawing %v - %v\n", i, i%numBlocks)
 		addDataBlock(screen, dataRadius, color.Black,
 			clr, color.Black,
 			lattice.Blocks[i%numBlocks].Position, co)
