@@ -31,6 +31,7 @@ var (
 	zoominc      float64 = 0.2
 	windowYSize  int     = 500
 	windowXSize  int
+	logfile      string
 )
 
 const (
@@ -47,21 +48,16 @@ const (
 )
 
 func init() {
-
+	if len(os.Args) < 2 {
+		fmt.Printf("Must supply path to log file.")
+		os.Exit(1)
+	}
+	logfile = os.Args[1]
 	tt, err := truetype.Parse(fonts.OpenSans_Regular_tff)
 	if err != nil {
 		log.Fatal(err)
 	}
-	latticePath := "lattice.json"
-	logPath := "output.txt"
-	if _, err := os.Stat(latticePath); os.IsNotExist(err) {
-		latticePath = "resources/lattice.json"
-		if _, err := os.Stat(latticePath); os.IsNotExist(err) {
-			fmt.Println("Did not find lattice.json in working directory or resources/")
-			os.Exit(1)
-		}
-	}
-	//lattice = entangler.NewLattice(3, 5, 5, latticePath, nil)
+
 	lattice = entangler.NewLattice(context.TODO(), 3, 5, 5, 259)
 	lattice.RunInit()
 	w, h := ebiten.ScreenSizeInFullscreen()
@@ -69,14 +65,12 @@ func init() {
 	zoom = float64(windowXSize) / (float64(xOffset) + (float64(lattice.NumDataBlocks/lattice.HorizontalStrands)+float64(0.5))*xSpace)
 	// fmt.Printf("X: %v, Screen: %v, Zoom: %v\n", (float64(xOffset) + (float64(lattice.NumDataBlocks/lattice.HorizontalStrands)+float64(0.5))*xSpace), windowXSize, zoom)
 
-	if _, err := os.Stat(logPath); os.IsNotExist(err) {
-		logPath = "resources/output.txt"
-		if _, err := os.Stat(logPath); os.IsNotExist(err) {
-			fmt.Println("Did not find output.txt in working directory or resources/")
-			os.Exit(1)
-		}
+	if _, err := os.Stat(logfile); os.IsNotExist(err) {
+		fmt.Printf("Did not find logfile %v! Err: %v\n", logfile, err)
+		os.Exit(1)
 	}
-	logParser = NewLogParser(logPath)
+
+	logParser = NewLogParser(logfile)
 	if err := logParser.ParseLog(); err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
