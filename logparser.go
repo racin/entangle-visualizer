@@ -36,49 +36,20 @@ func NewBlockEntryString(entry []string, err string) BlockEntry {
 	HasData, _ := strconv.ParseBool(entry[4])
 	StartTime, _ := strconv.ParseInt(entry[5], 10, 64)
 	EndTime, _ := strconv.ParseInt(entry[6], 10, 64)
-	WasDownloaded, _ := strconv.ParseBool(entry[7][:len(entry[7])-1])
-	var dlStatus DownloadStatus
-	if WasDownloaded {
-		dlStatus = DownloadSuccess
-	} else {
-		dlStatus = DownloadFailed
-	}
-	return NewBlockEntry(IsParity, Position, LeftPos, RightPos,
-		HasData, StartTime, EndTime, err, dlStatus, NoRepair)
-}
-
-func NewBlockEntryLongString(entry []string, err string) BlockEntry {
-	IsParity, _ := strconv.ParseBool(entry[0])
-	Position, _ := strconv.Atoi(entry[1])
-	LeftPos, _ := strconv.Atoi(entry[2])
-	RightPos, _ := strconv.Atoi(entry[3])
-	HasData, _ := strconv.ParseBool(entry[4])
-	StartTime, _ := strconv.ParseInt(entry[5], 10, 64)
-	EndTime, _ := strconv.ParseInt(entry[6], 10, 64)
 	var dlStatus DownloadStatus
 	var repStatus RepairStatus
-	downloadStatus := entry[7]
-	switch downloadStatus {
-	case "NoDownload":
-		dlStatus = NoDownload
-	case "DownloadPending":
-		dlStatus = DownloadPending
-	case "DownloadSuccess":
-		dlStatus = DownloadSuccess
-	case "DownloadFailed":
-		dlStatus = DownloadFailed
+	if len(entry) == 7 {
+		WasDownloaded, _ := strconv.ParseBool(entry[7][:len(entry[7])-1])
+		if WasDownloaded {
+			dlStatus = DownloadSuccess
+		} else {
+			dlStatus = DownloadFailed
+		}
+	} else if len(entry) == 8 {
+		dlStatus = ConvertDLStatus(entry[7])
+		repStatus = ConvertRepStatus(entry[8][:len(entry[8])-1])
 	}
-	repairStatus := entry[8][:len(entry[8])-1]
-	switch repairStatus {
-	case "NoRepair":
-		repStatus = NoRepair
-	case "RepairPending":
-		repStatus = RepairPending
-	case "RepairSuccess":
-		repStatus = RepairSuccess
-	case "RepairFailed":
-		repStatus = RepairFailed
-	}
+
 	return NewBlockEntry(IsParity, Position, LeftPos, RightPos,
 		HasData, StartTime, EndTime, err, dlStatus, repStatus)
 }
@@ -89,7 +60,7 @@ func NewBlockEntry(IsParity bool, Position, LeftPos, RightPos int,
 	return BlockEntry{IsParity: IsParity, Position: Position,
 		LeftPos: LeftPos, RightPos: RightPos, HasData: HasData,
 		StartTime: StartTime, EndTime: EndTime, Error: err,
-		WasDownloaded: WasDownloaded}
+		DownloadStatus: downloadStatus, RepairStatus: repairStatus}
 }
 
 type TotalEntry struct {
@@ -118,54 +89,6 @@ type LogParser struct {
 	TotalCursor int
 	BlockCursor int
 	TotalEntry  []TotalEntry
-}
-
-type DownloadStatus int
-
-const (
-	NoDownload      = iota // Did not attempt to download yet
-	DownloadPending        // Download pending
-	DownloadSuccess        // Download finished and HasData() = true
-	DownloadFailed         // Download finished and HasData() = false
-)
-
-func (s DownloadStatus) String() string {
-	switch s {
-	case NoDownload:
-		return "NoDownload"
-	case DownloadPending:
-		return "DownloadPending"
-	case DownloadSuccess:
-		return "DownloadSuccess"
-	case DownloadFailed:
-		return "DownloadFailed"
-	default:
-		return fmt.Sprintf("%d", int(s))
-	}
-}
-
-type RepairStatus int
-
-const (
-	NoRepair      = iota // Did not attempt to repair
-	RepairPending        // We started the repair process for this block.
-	RepairSuccess        // HasData() = true [Download initially failed or was never attempted]
-	RepairFailed         // HasData() = false [Download initially failed or was never attempted]
-)
-
-func (s RepairStatus) String() string {
-	switch s {
-	case NoRepair:
-		return "NoRepair"
-	case RepairPending:
-		return "RepairPending"
-	case RepairSuccess:
-		return "RepairSuccess"
-	case RepairFailed:
-		return "RepairFailed"
-	default:
-		return fmt.Sprintf("%d", int(s))
-	}
 }
 
 func NewLogParser(filepath string) *LogParser {
