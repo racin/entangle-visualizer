@@ -38,14 +38,15 @@ func NewBlockEntryString(entry []string, err string) BlockEntry {
 	EndTime, _ := strconv.ParseInt(entry[6], 10, 64)
 	var dlStatus DownloadStatus
 	var repStatus RepairStatus
-	if len(entry) == 7 {
+	if len(entry) == 8 {
 		WasDownloaded, _ := strconv.ParseBool(entry[7][:len(entry[7])-1])
 		if WasDownloaded {
 			dlStatus = DownloadSuccess
 		} else {
 			dlStatus = DownloadFailed
 		}
-	} else if len(entry) == 8 {
+	} else if len(entry) == 9 {
+		fmt.Printf(entry[7])
 		dlStatus = ConvertDLStatus(entry[7])
 		repStatus = ConvertRepStatus(entry[8][:len(entry[8])-1])
 	}
@@ -76,7 +77,31 @@ func NewTotalEntry(Datablocks, Parityblocks int, StartTime,
 	EndTime int64, err string, BlockEntries []BlockEntry) TotalEntry {
 
 	sort.Slice(BlockEntries, func(i, j int) bool {
-		return BlockEntries[i].StartTime < BlockEntries[j].StartTime
+		// left := BlockEntries[i]
+		// right := BlockEntries[j]
+		var left, right int64
+		// if BlockEntries[i].IsParity || BlockEntries[i].DownloadStatus == DownloadPending {
+		// 	left = BlockEntries[i].StartTime
+		// } else {
+		// 	left = BlockEntries[i].EndTime
+		// }
+		// if BlockEntries[j].IsParity || BlockEntries[j].DownloadStatus == DownloadPending {
+		// 	right = BlockEntries[j].StartTime
+		// } else {
+		// 	right = BlockEntries[j].EndTime
+		// }
+		if BlockEntries[i].DownloadStatus == DownloadPending || BlockEntries[i].RepairStatus == RepairPending {
+			left = BlockEntries[i].StartTime
+		} else {
+			left = BlockEntries[i].EndTime
+		}
+		if BlockEntries[j].DownloadStatus == DownloadPending || BlockEntries[j].RepairStatus == RepairPending {
+			right = BlockEntries[j].StartTime
+		} else {
+			right = BlockEntries[j].EndTime
+		}
+
+		return left < right
 	})
 
 	return TotalEntry{Datablocks: Datablocks, Parityblocks: Parityblocks,
@@ -122,18 +147,18 @@ func (l *LogParser) ParseLog() error {
 	var Datablocks, Parityblocks = 0, 0
 	for {
 		line, err = reader.ReadString('\n')
-
-		switch strings.Count(line, ",") {
+		entry := strings.Split(line, ",")
+		switch len(entry) {
+		case 9:
+			fallthrough
 		case 8:
-			entry := strings.Split(line, ",")
-			blockEntries = append(blockEntries, NewBlockEntryString(entry, blockError))
+			newEntry := NewBlockEntryString(entry, blockError)
+			if newEntry.RepairStatus == RepairPending || newEntry.DownloadStatus == DownloadPending {
+				continue
+			}
+			blockEntries = append(blockEntries, newEntry)
 			blockError = ""
-		case 7:
-			entry := strings.Split(line, ",")
-			blockEntries = append(blockEntries, NewBlockEntryString(entry, blockError))
-			blockError = ""
-		case 1:
-			entry := strings.Split(line, ",")
+		case 2:
 			if strings.Contains(line, "Downloaded total") {
 				db := strings.Split(entry[0], ": ")
 				pb := strings.Split(entry[1], ": ")
@@ -231,13 +256,22 @@ func (l *LogParser) ReadLog(lattice *entangler.Lattice) {
 			}
 		} else {
 			b := lattice.Blocks[entry.Position-1]
-			if !entry.HasData || entry.Error != "" {
+			if entry.DownloadStatus == DownloadFailed && !entry.HasData {
 				fmt.Printf(" - Data Unavailable. Position:%d\n", entry.Position)
 				b.IsUnavailable = true
-			} else {
+			} else if entry.DownloadStatus == DownloadFailed && entry.HasData {
 				fmt.Printf(" - Data Reconstructed. Position:%d\n", entry.Position)
+				fmt.Printf("Entry: %v\n", entry)
 				b.Data = make([]byte, swarmconnector.ChunkSizeOffset+1)
 				b.WasDownloaded = entry.DownloadStatus == DownloadSuccess
+			} else if entry.DownloadStatus == DownloadPending {
+				fmt.Printf(" - Data pending. Position:%d\n", entry.Position)
+			} else if entry.DownloadStatus == DownloadSuccess {
+				fmt.Printf(" - Data success. Position:%d\n", entry.Position)
+				b.Data = make([]byte, swarmconnector.ChunkSizeOffset+1)
+				b.WasDownloaded = entry.DownloadStatus == DownloadSuccess
+			} else {
+				fmt.Printf("%v\n", entry)
 			}
 		}
 	}

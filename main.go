@@ -61,7 +61,7 @@ func init() {
 	lattice = entangler.NewLattice(context.TODO(), 3, 5, 5, 259)
 	lattice.RunInit()
 	w, h := ebiten.ScreenSizeInFullscreen()
-	windowXSize, windowYSize = w-10, int(float64(h)*0.4)
+	windowXSize, windowYSize = w-10, int(float64(h)*0.5)
 	zoom = float64(windowXSize) / (float64(xOffset) + (float64(lattice.NumDataBlocks/lattice.HorizontalStrands)+float64(0.5))*xSpace)
 	// fmt.Printf("X: %v, Screen: %v, Zoom: %v\n", (float64(xOffset) + (float64(lattice.NumDataBlocks/lattice.HorizontalStrands)+float64(0.5))*xSpace), windowXSize, zoom)
 
