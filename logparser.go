@@ -204,7 +204,7 @@ func (l *LogParser) ReadLog(lattice *entangler.Lattice) {
 				} else if entry.LeftPos == l {
 					j = 2
 				}
-				rightData.Left[j].WasDownloaded = entry.WasDownloaded
+				rightData.Left[j].WasDownloaded = entry.DownloadStatus == DownloadSuccess
 				if !entry.HasData || entry.Error != "" {
 					rightData.Left[j].IsUnavailable = true
 					fmt.Printf(" - Parity Unavailable. Left: %d, Right: %d\n", entry.LeftPos, entry.RightPos)
@@ -219,7 +219,7 @@ func (l *LogParser) ReadLog(lattice *entangler.Lattice) {
 					if len(leftData.Right[j].Right) > 0 &&
 						rightData.Position == entry.RightPos {
 
-						leftData.Right[j].WasDownloaded = entry.WasDownloaded
+						leftData.Right[j].WasDownloaded = entry.DownloadStatus == DownloadSuccess
 						if !entry.HasData || entry.Error != "" {
 							leftData.Right[j].IsUnavailable = true
 							fmt.Printf(" - Parity Unavailable. Left: %d, Right: %d\n", entry.LeftPos, entry.RightPos)
@@ -237,7 +237,7 @@ func (l *LogParser) ReadLog(lattice *entangler.Lattice) {
 			} else {
 				fmt.Printf(" - Data Reconstructed. Position:%d\n", entry.Position)
 				b.Data = make([]byte, swarmconnector.ChunkSizeOffset+1)
-				b.WasDownloaded = entry.WasDownloaded
+				b.WasDownloaded = entry.DownloadStatus == DownloadSuccess
 			}
 		}
 	}

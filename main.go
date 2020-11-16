@@ -184,7 +184,7 @@ func update(screen *ebiten.Image) error {
 
 	text.Draw(screen, fmt.Sprintf("Entry: %d / %d", logParser.TotalCursor+1,
 		len(logParser.TotalEntry)),
-		dataFont, 1330, 462, color.Black)
+		dataFont, 1380, 462, color.Black)
 
 	text.Draw(screen, fmt.Sprintf("Event: %d / %d", logParser.BlockCursor,
 		len(logParser.TotalEntry[logParser.TotalCursor].BlockEntries)),
