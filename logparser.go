@@ -71,7 +71,7 @@ func NewBlockEntry(IsParity bool, Position, LeftPos, RightPos int,
 	return BlockEntry{IsParity: IsParity, Position: Position,
 		LeftPos: LeftPos, RightPos: RightPos, HasData: HasData,
 		DownloadTime: timePeriod{StartTime: DownloadStartTime, EndTime: DownloadEndTime},
-		RepairTime:   timePeriod{StartTime: DownloadStartTime, EndTime: DownloadEndTime},
+		RepairTime:   timePeriod{StartTime: RepairStartTime, EndTime: RepairEndTime},
 		Error:        err, DownloadStatus: downloadStatus, RepairStatus: repairStatus}
 }
 
