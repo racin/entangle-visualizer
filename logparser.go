@@ -87,32 +87,19 @@ type TotalEntry struct {
 func NewTotalEntry(Datablocks, Parityblocks int, StartTime,
 	EndTime int64, err string, BlockEntries []BlockEntry) TotalEntry {
 
+	var getSortTime func(BlockEntry) int64 = func(entry BlockEntry) int64 {
+		if entry.RepairStatus == RepairSuccess || entry.RepairStatus == RepairFailed {
+			return entry.RepairTime.EndTime
+		} else if entry.RepairStatus == RepairPending {
+			return entry.RepairTime.StartTime
+		} else if entry.DownloadStatus == DownloadSuccess || entry.DownloadStatus == DownloadFailed {
+			return entry.DownloadTime.EndTime
+		} else {
+			return entry.DownloadTime.StartTime
+		}
+	}
 	sort.Slice(BlockEntries, func(i, j int) bool {
-		// left := BlockEntries[i]
-		// right := BlockEntries[j]
-		var left, right int64
-		// if BlockEntries[i].IsParity || BlockEntries[i].DownloadStatus == DownloadPending {
-		// 	left = BlockEntries[i].StartTime
-		// } else {
-		// 	left = BlockEntries[i].EndTime
-		// }
-		// if BlockEntries[j].IsParity || BlockEntries[j].DownloadStatus == DownloadPending {
-		// 	right = BlockEntries[j].StartTime
-		// } else {
-		// 	right = BlockEntries[j].EndTime
-		// }
-		if BlockEntries[i].DownloadStatus == DownloadPending || BlockEntries[i].RepairStatus == RepairPending {
-			left = BlockEntries[i].StartTime
-		} else {
-			left = BlockEntries[i].EndTime
-		}
-		if BlockEntries[j].DownloadStatus == DownloadPending || BlockEntries[j].RepairStatus == RepairPending {
-			right = BlockEntries[j].StartTime
-		} else {
-			right = BlockEntries[j].EndTime
-		}
-
-		return left < right
+		return getSortTime(BlockEntries[i]) < getSortTime(BlockEntries[j])
 	})
 
 	return TotalEntry{Datablocks: Datablocks, Parityblocks: Parityblocks,
@@ -160,7 +147,7 @@ func (l *LogParser) ParseLog() error {
 		line, err = reader.ReadString('\n')
 		entry := strings.Split(line, ",")
 		switch len(entry) {
-		case 9:
+		case 11:
 			fallthrough
 		case 8:
 			newEntry := NewBlockEntryString(entry, blockError)
