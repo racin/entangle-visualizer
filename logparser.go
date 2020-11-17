@@ -15,14 +15,19 @@ import (
 
 // fmt.Printf("%t,%d,%d,%d,%t,%d,%d\n", block.IsParity, block.Position, block.LeftPos(0), block.RightPos(0), block.HasData(), start, time.Now().UnixNano())
 
+type timePeriod struct {
+	StartTime int64
+	EndTime   int64
+}
+
 type BlockEntry struct {
 	IsParity       bool
 	Position       int
 	LeftPos        int
 	RightPos       int
 	HasData        bool
-	StartTime      int64
-	EndTime        int64
+	DownloadTime   timePeriod
+	RepairTime     timePeriod
 	Error          string // HTTP 404
 	DownloadStatus DownloadStatus
 	RepairStatus   RepairStatus
@@ -34,8 +39,9 @@ func NewBlockEntryString(entry []string, err string) BlockEntry {
 	LeftPos, _ := strconv.Atoi(entry[2])
 	RightPos, _ := strconv.Atoi(entry[3])
 	HasData, _ := strconv.ParseBool(entry[4])
-	StartTime, _ := strconv.ParseInt(entry[5], 10, 64)
-	EndTime, _ := strconv.ParseInt(entry[6], 10, 64)
+	DownloadStartTime, _ := strconv.ParseInt(entry[5], 10, 64)
+	DownloadEndTime, _ := strconv.ParseInt(entry[6], 10, 64)
+	var RepairStartTime, RepairEndTime int64
 	var dlStatus DownloadStatus
 	var repStatus RepairStatus
 	if len(entry) == 8 {
@@ -45,23 +51,28 @@ func NewBlockEntryString(entry []string, err string) BlockEntry {
 		} else {
 			dlStatus = DownloadFailed
 		}
-	} else if len(entry) == 9 {
+	} else if len(entry) == 11 {
 		fmt.Printf(entry[7])
 		dlStatus = ConvertDLStatus(entry[7])
-		repStatus = ConvertRepStatus(entry[8][:len(entry[8])-1])
+		RepairStartTime, _ = strconv.ParseInt(entry[8], 10, 64)
+		RepairEndTime, _ = strconv.ParseInt(entry[9], 10, 64)
+		repStatus = ConvertRepStatus(entry[10][:len(entry[10])-1])
 	}
 
 	return NewBlockEntry(IsParity, Position, LeftPos, RightPos,
-		HasData, StartTime, EndTime, err, dlStatus, repStatus)
+		HasData, DownloadStartTime, DownloadEndTime, RepairStartTime,
+		RepairEndTime, err, dlStatus, repStatus)
 }
 
 func NewBlockEntry(IsParity bool, Position, LeftPos, RightPos int,
-	HasData bool, StartTime, EndTime int64, err string, downloadStatus DownloadStatus,
+	HasData bool, DownloadStartTime, DownloadEndTime, RepairStartTime, RepairEndTime int64,
+	err string, downloadStatus DownloadStatus,
 	repairStatus RepairStatus) BlockEntry {
 	return BlockEntry{IsParity: IsParity, Position: Position,
 		LeftPos: LeftPos, RightPos: RightPos, HasData: HasData,
-		StartTime: StartTime, EndTime: EndTime, Error: err,
-		DownloadStatus: downloadStatus, RepairStatus: repairStatus}
+		DownloadTime: timePeriod{StartTime: DownloadStartTime, EndTime: DownloadEndTime},
+		RepairTime:   timePeriod{StartTime: DownloadStartTime, EndTime: DownloadEndTime},
+		Error:        err, DownloadStatus: downloadStatus, RepairStatus: repairStatus}
 }
 
 type TotalEntry struct {
