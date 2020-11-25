@@ -73,15 +73,14 @@ func addEdge(img *ebiten.Image, startX, startY, endX, endY float64, fill color.C
 				continue
 			}
 		}
-		a := int((xdiff - (endX - i)) * m)
+		a := int((xdiff-(endX-i))*m) + int(startY)
 		ii := int(i)
 		for j := 0; j < width; j++ {
 			if j <= 1 || j+2 >= width {
-				img.Set(ii, int(startY)+j+a, edge)
+				img.Set(ii, j+a, edge)
 			} else {
-				img.Set(ii, int(startY)+j+a, fill)
+				img.Set(ii, j+a, fill)
 			}
-
 		}
 	}
 }

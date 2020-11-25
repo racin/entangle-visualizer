@@ -237,6 +237,7 @@ func update(screen *ebiten.Image) error {
 		if i >= numBlocks {
 			co += lattice.NumDataBlocks/lattice.HorizontalStrands + 1
 		}
+
 		addParityBetweenDatablock(screen, leftPos, rightPos, clr, 8, co)
 	}
 	for i := (columnOffset * 5); i < (numBlocks + (columnOffset * 5)); i++ {

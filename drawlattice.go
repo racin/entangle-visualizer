@@ -26,7 +26,7 @@ func addParityBetweenDatablock(img *ebiten.Image, dataLeft, dataRight int, fill 
 		dataRightRow = entangler.HorizontalStrands
 	}
 	var dataLeftColumn float64 = float64(int((dataLeft-1)/entangler.HorizontalStrands) + columnOffset)
-	var dataRightColumn float64 = float64(int((dataRight-1)/entangler.HorizontalStrands) + columnOffset)
+	//var dataRightColumn float64 = float64(int((dataRight-1)/entangler.HorizontalStrands) + columnOffset)
 	var dataLeftXpos, dataLeftYpos, dataRightXpos, dataRightYpos float64
 
 	/*
@@ -36,12 +36,14 @@ func addParityBetweenDatablock(img *ebiten.Image, dataLeft, dataRight int, fill 
 		x := float64(xOffset + (xSpace * column))
 		y := float64(yOffset + (ySpace * (row)))
 	*/
+
 	if dataLeftRow == dataRightRow { // Horizontal
 		dataLeftXpos = xOffset + dataLeftColumn*xSpace
 		dataLeftYpos = yOffset + (ySpace * (dataLeftRow - 1))
 
-		dataRightXpos = xOffset + dataRightColumn*xSpace + 1
+		dataRightXpos = dataLeftXpos + xSpace // xOffset + dataRightColumn*xSpace + 1
 		dataRightYpos = yOffset + (ySpace * (dataRightRow - 1))
+
 		addEdge(img, dataLeftXpos, dataLeftYpos, dataRightXpos, dataRightYpos, fill, width)
 	} else if dataLeftRow+1 == dataRightRow { // Right
 		dataLeftXpos = xOffset + dataLeftColumn*xSpace
