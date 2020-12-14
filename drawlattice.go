@@ -8,10 +8,10 @@ import (
 
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/text"
-	"github.com/racin/entangle/entangler"
+	"github.com/racin/snarl/entangler"
 )
 
-func addParityBetweenDatablock(img *ebiten.Image, dataLeft, dataRight int, fill color.Color, width, columnOffset int) {
+func addParityBetweenDatablock(img *ebiten.Image, dataLeft, dataRight int, fill color.Color, width, columnOffset, horizontalStands int, class entangler.StrandClass) {
 	defer func() {
 		if rec := recover(); rec != nil {
 			fmt.Printf("Recovered.... %v\n", rec)
@@ -19,13 +19,13 @@ func addParityBetweenDatablock(img *ebiten.Image, dataLeft, dataRight int, fill 
 	}()
 
 	var dataLeftRow, dataRightRow float64
-	if dataLeftRow = float64(dataLeft % entangler.HorizontalStrands); dataLeftRow == 0 {
-		dataLeftRow = entangler.HorizontalStrands
+	if dataLeftRow = float64(dataLeft % horizontalStands); dataLeftRow == 0 {
+		dataLeftRow = float64(horizontalStands)
 	}
-	if dataRightRow = float64(dataRight % entangler.HorizontalStrands); dataRightRow == 0 {
-		dataRightRow = entangler.HorizontalStrands
+	if dataRightRow = float64(dataRight % horizontalStands); dataRightRow == 0 {
+		dataRightRow = float64(horizontalStands)
 	}
-	var dataLeftColumn float64 = float64(int((dataLeft-1)/entangler.HorizontalStrands) + columnOffset)
+	var dataLeftColumn float64 = float64(int((dataLeft-1)/horizontalStands) + columnOffset)
 	//var dataRightColumn float64 = float64(int((dataRight-1)/entangler.HorizontalStrands) + columnOffset)
 	var dataLeftXpos, dataLeftYpos, dataRightXpos, dataRightYpos float64
 
@@ -36,8 +36,9 @@ func addParityBetweenDatablock(img *ebiten.Image, dataLeft, dataRight int, fill 
 		x := float64(xOffset + (xSpace * column))
 		y := float64(yOffset + (ySpace * (row)))
 	*/
-
-	if dataLeftRow == dataRightRow { // Horizontal
+	if dataLeft > dataRight {
+		fmt.Printf("Want to draw between %v and %v, but this is a special case. Class: %v\n", dataLeft, dataRight, class)
+	} else if dataLeftRow == dataRightRow { // Horizontal
 		dataLeftXpos = xOffset + dataLeftColumn*xSpace
 		dataLeftYpos = yOffset + (ySpace * (dataLeftRow - 1))
 
@@ -80,11 +81,11 @@ func addParityBetweenDatablock(img *ebiten.Image, dataLeft, dataRight int, fill 
 	}
 }
 
-func addDataBlock(img *ebiten.Image, radius float64, edge, fill, textColor color.Color, index, columnOffset int) {
+func addDataBlock(img *ebiten.Image, radius float64, edge, fill, textColor color.Color, index, columnOffset, horizontalStands int) {
 	var row, column int
 	i := index - 1
-	row = i % entangler.HorizontalStrands
-	column = int(i/entangler.HorizontalStrands) - columnOffset
+	row = i % horizontalStands
+	column = int(i/horizontalStands) - columnOffset
 	// if column < 0 {
 	// 	column += int(lattice.NumDataBlocks/entangler.HorizontalStrands) + 1
 	// }

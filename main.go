@@ -238,7 +238,7 @@ func update(screen *ebiten.Image) error {
 			co += lattice.NumDataBlocks/lattice.HorizontalStrands + 1
 		}
 
-		addParityBetweenDatablock(screen, leftPos, rightPos, clr, 8, co)
+		addParityBetweenDatablock(screen, leftPos, rightPos, clr, 8, co, lattice.HorizontalStrands, block.Class)
 	}
 	for i := (columnOffset * 5); i < (numBlocks + (columnOffset * 5)); i++ {
 		bl := lattice.Blocks[i%numBlocks]
@@ -263,7 +263,7 @@ func update(screen *ebiten.Image) error {
 		}
 		addDataBlock(screen, dataRadius, color.Black,
 			clr, color.Black,
-			lattice.Blocks[i%numBlocks].Position, co)
+			lattice.Blocks[i%numBlocks].Position, co, lattice.HorizontalStrands)
 	}
 	return nil
 }
