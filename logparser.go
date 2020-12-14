@@ -52,7 +52,6 @@ func NewBlockEntryString(entry []string, err string) BlockEntry {
 			dlStatus = DownloadFailed
 		}
 	} else if len(entry) == 11 {
-		fmt.Printf(entry[7])
 		dlStatus = ConvertDLStatus(entry[7])
 		RepairStartTime, _ = strconv.ParseInt(entry[8], 10, 64)
 		RepairEndTime, _ = strconv.ParseInt(entry[9], 10, 64)
