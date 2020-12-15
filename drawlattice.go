@@ -26,7 +26,7 @@ func addParityBetweenDatablock(img *ebiten.Image, dataLeft, dataRight int, fill 
 		dataRightRow = float64(horizontalStands)
 	}
 	var dataLeftColumn float64 = float64(int((dataLeft-1)/horizontalStands) + columnOffset)
-	//var dataRightColumn float64 = float64(int((dataRight-1)/entangler.HorizontalStrands) + columnOffset)
+	var dataRightColumn float64 = float64(int((dataRight-1)/horizontalStands) + columnOffset)
 	var dataLeftXpos, dataLeftYpos, dataRightXpos, dataRightYpos float64
 
 	/*
@@ -38,6 +38,25 @@ func addParityBetweenDatablock(img *ebiten.Image, dataLeft, dataRight int, fill 
 	*/
 	if dataLeft > dataRight {
 		fmt.Printf("Want to draw between %v and %v, but this is a special case. Class: %v\n", dataLeft, dataRight, class)
+		if class == entangler.Horizontal {
+			// Just draw a long line
+			dataLeftXpos = xOffset + dataLeftColumn*xSpace
+			dataLeftYpos = yOffset + (ySpace * (dataLeftRow - 1))
+
+			w, _ := img.Size()
+			dataRightXpos = xOffset + dataRightColumn*xSpace //dataLeftXpos + xSpace //
+			if dataRightXpos < dataLeftXpos {
+				dataRightXpos += float64(w)
+			}
+
+			fmt.Printf("dataLeftXpos: %v, dataRightXpos: %v, xOffSet: %v, dataLeftCol: %v, dataRightCol: %v, Width: %v, xSpace: %v\n", dataLeftXpos, dataRightXpos, xOffset, dataLeftColumn, dataRightColumn, w, xSpace)
+			dataRightYpos = yOffset + (ySpace * (dataRightRow - 1))
+			addEdge(img, dataLeftXpos, dataLeftYpos, dataRightXpos, dataRightYpos, fill, width)
+		} else if class == entangler.Right {
+
+		} else if class == entangler.Left {
+
+		}
 	} else if dataLeftRow == dataRightRow { // Horizontal
 		dataLeftXpos = xOffset + dataLeftColumn*xSpace
 		dataLeftYpos = yOffset + (ySpace * (dataLeftRow - 1))
