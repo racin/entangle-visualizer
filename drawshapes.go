@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"image/color"
 	"math"
 
@@ -57,9 +58,11 @@ func addSquare(img *ebiten.Image, x, y, length, width float64, fill bool) {
 }
 
 func addEdge(img *ebiten.Image, startX, startY, endX, endY float64, fill color.Color, width int) {
-	m := (endY - startY) / (endX - startX)
-	red := color.RGBA{0xff, 0x0, 0x0, 0xff}
 	xdiff := endX - startX
+	ydiff := endY - startY
+	m := (ydiff) / (xdiff)
+	red := color.RGBA{0xff, 0x0, 0x0, 0xff}
+
 	var edge color.Color
 	if fill == red {
 		edge = red
@@ -67,6 +70,49 @@ func addEdge(img *ebiten.Image, startX, startY, endX, endY float64, fill color.C
 		edge = color.Black
 	}
 
+	// for i := startY; i < endY; i++ {
+	// 	if fill == red {
+	// 		if math.Mod(math.Abs(i), 6) < 3 {
+	// 			continue
+	// 		}
+	// 	}
+	// 	a := int((ydiff-(endY-i))*m) + int(startX)
+	// 	ii := int(i)
+	// 	for j := 0; j < width; j++ {
+	// 		if j <= 1 || j+2 >= width {
+	// 			img.Set(ii, j+a, edge)
+	// 		} else {
+	// 			img.Set(ii, j+a, fill)
+	// 		}
+	// 	}
+	// }
+
+	if startX == endX {
+		fmt.Printf("Trying to decrement.... xdiff: %v, ydiff: %v, m: %v", xdiff, ydiff, m)
+		for i := startY; i < endY; i++ {
+			if fill == red {
+				if math.Mod(math.Abs(i), 6) < 3 {
+					continue
+				}
+			}
+			ii := int(i)
+			xx := int(startX)
+			for j := 0; j < width; j++ {
+				if i-7 < startY {
+					if i-2 < startY || j+2 >= width {
+						img.Set(xx+j, ii, edge)
+					} else {
+						img.Set(xx+j, ii, fill)
+					}
+
+				} else if j <= 1 || j+2 >= width {
+					img.Set(xx+j, ii, edge)
+				} else {
+					img.Set(xx+j, ii, fill)
+				}
+			}
+		}
+	}
 	for i := startX; i < endX; i++ {
 		if fill == red {
 			if math.Mod(math.Abs(i), 6) < 3 {
