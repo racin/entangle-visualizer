@@ -71,7 +71,9 @@ func addParityBetweenDatablock(img *ebiten.Image, dataLeft, dataRight int, fill 
 			endX := startX + (xSpace / 2) - 5
 			endY := startY - (ySpace / 2) - 5
 
-			addEdge(img, startX, startY, endX, endY, fill, width)
+			clr_r, clr_g, clr_b, _ := fill.RGBA()
+			newClr := color.RGBA{uint8(clr_r) + 200, uint8(clr_g) - 100, uint8(clr_b), 0xff}
+			addEdge(img, startX, startY, endX, endY, newClr, width)
 			// East
 			dataRightXpos = xOffset + dataRightColumn*xSpace //dataLeftXpos + xSpace //
 			if dataRightXpos < dataLeftXpos {
@@ -85,8 +87,20 @@ func addParityBetweenDatablock(img *ebiten.Image, dataLeft, dataRight int, fill 
 			startX = endX
 			startY = endY
 			endX = startX
-			endY = startY + ySpace
+			endY = yOffset + (ySpace * (dataRightRow - 1)) + (ySpace / 2)
 			fmt.Printf("StartX: %v, StartY: %v, EndX: %v, EndY: %v\n", startX, startY, endX, endY)
+			addEdge(img, startX, startY, endX, endY, fill, width)
+			// East
+			startX = endX
+			startY = endY
+			endX = dataRightXpos - (xSpace / 2)
+			addEdge(img, startX, startY, endX, endY, fill, width)
+			// North-East
+			startX = endX
+			startY = endY
+			endX = dataRightXpos
+			endY = yOffset + (ySpace * (dataRightRow - 1))
+
 			addEdge(img, startX, startY, endX, endY, fill, width)
 		}
 	} else if dataLeftRow == dataRightRow { // Horizontal
