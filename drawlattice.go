@@ -38,24 +38,25 @@ func addParityBetweenDatablock(img *ebiten.Image, dataLeft, dataRight int, fill 
 	*/
 	if dataLeft > dataRight {
 		fmt.Printf("Want to draw between %v and %v, but this is a special case. Class: %v\n", dataLeft, dataRight, class)
+		screenWidth, _ := img.Size()
 		if class == entangler.Horizontal {
 			// Just draw a long line
 			dataLeftXpos = xOffset + dataLeftColumn*xSpace
 			dataLeftYpos = yOffset + (ySpace * (dataLeftRow - 1))
+			dataRightYpos = dataLeftYpos
 
-			w, _ := img.Size()
 			dataRightXpos = xOffset + dataRightColumn*xSpace //dataLeftXpos + xSpace //
 			if dataRightXpos < dataLeftXpos {
-				dataRightXpos += float64(w)
+				dataRightXpos += float64(screenWidth)
 			}
 
-			fmt.Printf("dataLeftXpos: %v, dataRightXpos: %v, xOffSet: %v, dataLeftCol: %v, dataRightCol: %v, Width: %v, xSpace: %v\n", dataLeftXpos, dataRightXpos, xOffset, dataLeftColumn, dataRightColumn, w, xSpace)
-			dataRightYpos = yOffset + (ySpace * (dataRightRow - 1))
+			fmt.Printf("dataLeftXpos: %v, dataRightXpos: %v, xOffSet: %v, dataLeftCol: %v, dataRightCol: %v, Width: %v, xSpace: %v\n", dataLeftXpos, dataRightXpos, xOffset, dataLeftColumn, dataRightColumn, screenWidth, xSpace)
+
 			addEdge(img, dataLeftXpos, dataLeftYpos, dataRightXpos, dataRightYpos, fill, width)
 		} else if class == entangler.Right {
 
 		} else if class == entangler.Left {
-
+			// Draw 5 lines. North-East, East, South, East, North-East
 		}
 	} else if dataLeftRow == dataRightRow { // Horizontal
 		dataLeftXpos = xOffset + dataLeftColumn*xSpace
