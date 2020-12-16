@@ -11,18 +11,23 @@ import (
 	"github.com/racin/snarl/entangler"
 )
 
-var colors []color.Color = []color.Color{color.RGBA{0xff, 0x0, 0x0, 0xff}, color.RGBA{0x0, 0xff, 0, 0xff},
-	color.RGBA{0x33, 0x99, 0xff, 0xff}}
+var colors []color.Color = []color.Color{color.RGBA{0xff, 0x0, 0x0, 0xff}, color.RGBA{0x0, 0xff, 0, 0xff}, color.RGBA{0x33, 0x99, 0xff, 0xff},
+	/* Green */ color.RGBA{0x0A, 0x66, 0x00, 0xFF}, color.RGBA{0x16, 0xE0, 0x00, 0xFF}, color.RGBA{0x0E, 0x8F, 0x00, 0xFF}, color.RGBA{0x06, 0x3D, 0x00, 0xFF}, color.RGBA{0x12, 0xB8, 0x00, 0xFF},
+	/* Blue */ color.RGBA{0x00, 0x47, 0x8F, 0xFF}, color.RGBA{0x0A, 0x85, 0xFF, 0xFF}, color.RGBA{0x00, 0x5C, 0xB8, 0xFF}, color.RGBA{0x00, 0x33, 0x66, 0xFF}, color.RGBA{0x00, 0x70, 0xE0, 0xFF},
+	/* Red */ color.RGBA{0xA3, 0x00, 0x00, 0xFF}, color.RGBA{0xFF, 0x47, 0x47, 0xFF}, color.RGBA{0xCC, 0x00, 0x00, 0xFF}, color.RGBA{0x7A, 0x00, 0x00, 0xFF}, color.RGBA{0xFF, 0x1F, 0x1F, 0xFF}}
 
-func getColorForSpecialParities(oldClr color.Color, class entangler.StrandClass, leftRow int) {
+func getColorForSpecialParities(oldClr color.Color, class entangler.StrandClass, rightRow int) color.Color {
 	if oldClr == colors[0] {
 		// Red failure line
+		return colors[12+rightRow]
 
 	} else if oldClr == colors[1] {
 		// Green download line
+		return colors[2+rightRow]
 
 	} else {
 		// Blue repaired line
+		return colors[7+rightRow]
 	}
 }
 
@@ -80,15 +85,15 @@ func addParityBetweenDatablock(img *ebiten.Image, dataLeft, dataRight int, fill 
 
 			// addEdge(img, dataLeftXpos, dataLeftYpos, dataLeftXpos+dataRadius+10, dataLeftYpos-dataRadius-10, fill, width)
 
+			fillclr := getColorForSpecialParities(fill, class, int(dataRightRow))
+
 			// North-East
 			startX := xOffset + dataLeftColumn*xSpace
 			startY := yOffset + (ySpace * (dataLeftRow - 1))
 			endX := startX + (xSpace / 2) - 5
 			endY := startY - (ySpace / 2) - 5
 
-			clr_r, clr_g, clr_b, _ := fill.RGBA()
-			newClr := color.RGBA{uint8(clr_r) + 200, uint8(clr_g) - 100, uint8(clr_b), 0xff}
-			addEdge(img, startX, startY, endX, endY, newClr, width)
+			addEdge(img, startX, startY, endX, endY, fillclr, width)
 			// East
 			dataRightXpos = xOffset + dataRightColumn*xSpace //dataLeftXpos + xSpace //
 			if dataRightXpos < dataLeftXpos {
@@ -97,26 +102,26 @@ func addParityBetweenDatablock(img *ebiten.Image, dataLeft, dataRight int, fill 
 			startX = endX
 			startY = endY
 			endX = dataRightXpos - 2.5*dataRadius + (float64(width-1) * dataLeftRow)
-			addEdge(img, startX, startY, endX, endY, fill, width)
+			addEdge(img, startX, startY, endX, endY, fillclr, width)
 			// South
 			startX = endX
 			startY = endY
 			endX = startX
 			endY = yOffset + (ySpace * (dataRightRow - 1)) + (ySpace / 2)
 			fmt.Printf("StartX: %v, StartY: %v, EndX: %v, EndY: %v\n", startX, startY, endX, endY)
-			addEdge(img, startX, startY, endX, endY, fill, width)
+			addEdge(img, startX, startY, endX, endY, fillclr, width)
 			// East
 			startX = endX
 			startY = endY
 			endX = dataRightXpos - (xSpace / 2)
-			addEdge(img, startX, startY, endX, endY, fill, width)
+			addEdge(img, startX, startY, endX, endY, fillclr, width)
 			// North-East
 			startX = endX
 			startY = endY
 			endX = dataRightXpos
 			endY = yOffset + (ySpace * (dataRightRow - 1))
 
-			addEdge(img, startX, startY, endX, endY, fill, width)
+			addEdge(img, startX, startY, endX, endY, fillclr, width)
 		}
 	} else if dataLeftRow == dataRightRow { // Horizontal
 		dataLeftXpos = xOffset + dataLeftColumn*xSpace
