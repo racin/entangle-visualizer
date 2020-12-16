@@ -11,6 +11,21 @@ import (
 	"github.com/racin/snarl/entangler"
 )
 
+var colors []color.Color = []color.Color{color.RGBA{0xff, 0x0, 0x0, 0xff}, color.RGBA{0x0, 0xff, 0, 0xff},
+	color.RGBA{0x33, 0x99, 0xff, 0xff}}
+
+func getColorForSpecialParities(oldClr color.Color, class entangler.StrandClass, leftRow int) {
+	if oldClr == colors[0] {
+		// Red failure line
+
+	} else if oldClr == colors[1] {
+		// Green download line
+
+	} else {
+		// Blue repaired line
+	}
+}
+
 func addParityBetweenDatablock(img *ebiten.Image, dataLeft, dataRight int, fill color.Color, width, columnOffset, horizontalStands int, class entangler.StrandClass) {
 	defer func() {
 		if rec := recover(); rec != nil {
