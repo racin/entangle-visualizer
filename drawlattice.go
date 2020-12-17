@@ -31,6 +31,20 @@ func getColorForSpecialParities(oldClr color.Color, class entangler.StrandClass,
 	}
 }
 
+func isFillRed(fill color.Color) bool {
+	reds := []int{0, 12, 13, 14, 15, 17}
+	for i := 0; i < len(colors); i++ {
+		if fill == colors[i] {
+			for j := 0; j < len(reds); j++ {
+				if i == reds[j] {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
 func addParityBetweenDatablock(img *ebiten.Image, dataLeft, dataRight int, fill color.Color, width, columnOffset, horizontalStands int, class entangler.StrandClass) {
 	defer func() {
 		if rec := recover(); rec != nil {
@@ -48,7 +62,14 @@ func addParityBetweenDatablock(img *ebiten.Image, dataLeft, dataRight int, fill 
 	var dataLeftColumn float64 = float64(int((dataLeft-1)/horizontalStands) + columnOffset)
 	var dataRightColumn float64 = float64(int((dataRight-1)/horizontalStands) + columnOffset)
 	var dataLeftXpos, dataLeftYpos, dataRightXpos, dataRightYpos float64
-
+	screenWidthFloat := float64(windowXSize) / zoom
+	dataLeftXpos = xOffset + dataLeftColumn*xSpace
+	if dataLeftXpos < 0 {
+		dataLeftXpos += displayXSize
+	}
+	if dataLeftXpos > screenWidthFloat {
+		return
+	}
 	/*
 		row = i % entangler.HorizontalStrands
 		column = int(i / entangler.HorizontalStrands)
@@ -57,20 +78,22 @@ func addParityBetweenDatablock(img *ebiten.Image, dataLeft, dataRight int, fill 
 		y := float64(yOffset + (ySpace * (row)))
 	*/
 	if dataLeft > dataRight {
-		fmt.Printf("Want to draw between %v and %v, but this is a special case. Class: %v\n", dataLeft, dataRight, class)
-		screenWidth, _ := img.Size()
+		// fmt.Printf("Want to draw between %v and %v, but this is a special case, RightCol: %v, Class: %v, screenWidthFloat: %v\n", dataLeft, dataRight, dataRightColumn, class, screenWidthFloat)
+		// screenWidth, _ := img.Size()
 		if class == entangler.Horizontal {
 			// Just draw a long line
-			dataLeftXpos = xOffset + dataLeftColumn*xSpace
+
 			dataLeftYpos = yOffset + (ySpace * (dataLeftRow - 1))
 			dataRightYpos = dataLeftYpos
 
 			dataRightXpos = xOffset + dataRightColumn*xSpace //dataLeftXpos + xSpace //
 			if dataRightXpos < dataLeftXpos {
-				dataRightXpos += float64(screenWidth)
+				dataRightXpos += displayXSize
 			}
-
-			// fmt.Printf("dataLeftXpos: %v, dataRightXpos: %v, xOffSet: %v, dataLeftCol: %v, dataRightCol: %v, Width: %v, xSpace: %v\n", dataLeftXpos, dataRightXpos, xOffset, dataLeftColumn, dataRightColumn, screenWidth, xSpace)
+			// fmt.Printf("dataLeftXpos: %v, dataRightOrig: %v, dataRightXpos: %v, colOffset: %v, xOffSet: %v, dataLeftCol: %v, dataRightCol: %v, WindowXSize: %v, WindowXSize/Zoom: %v, xSpace: %v\n", dataLeftXpos, xOffset+dataRightColumn*xSpace, dataRightXpos, columnOffset, xOffset, dataLeftColumn, dataRightColumn, windowXSize, screenWidthFloat, xSpace)
+			if dataRightColumn < 0 && dataRightXpos > screenWidthFloat {
+				dataRightXpos = screenWidthFloat
+			}
 
 			addEdge(img, dataLeftXpos, dataLeftYpos, dataRightXpos, dataRightYpos, fill, width)
 		} else if class == entangler.Right {
@@ -78,16 +101,16 @@ func addParityBetweenDatablock(img *ebiten.Image, dataLeft, dataRight int, fill 
 			fillclr := getColorForSpecialParities(fill, class, int(dataRightRow))
 
 			// South-East
-			startX := xOffset + dataLeftColumn*xSpace
+			startX := dataLeftXpos
 			startY := yOffset + (ySpace * (dataLeftRow - 1))
-			endX := startX + (xSpace / 2) - 5
-			endY := startY + (ySpace / 2) - 5
+			endX := startX + (xSpace / 2) - 8
+			endY := startY + (ySpace / 2) - 8
 
 			addEdge(img, startX, startY, endX, endY, fillclr, width)
 			// East
 			dataRightXpos = xOffset + dataRightColumn*xSpace //dataLeftXpos + xSpace //
 			if dataRightXpos < dataLeftXpos {
-				dataRightXpos += float64(screenWidth)
+				dataRightXpos += displayXSize
 			}
 			startX = endX
 			startY = endY
@@ -95,10 +118,13 @@ func addParityBetweenDatablock(img *ebiten.Image, dataLeft, dataRight int, fill 
 			addEdge(img, startX, startY, endX, endY, fillclr, width)
 			// North
 			startX = endX
-			startY = yOffset + (ySpace * (dataRightRow - 2)) + (ySpace / 2)
+			startY = yOffset + (ySpace * (dataRightRow - 2)) + (ySpace / 2) // - float64(width)
 			endX = startX
-			endY += float64(width)
-			fmt.Printf("StartX: %v, StartY: %v, EndX: %v, EndY: %v\n", startX, startY, endX, endY)
+			if startY < endY {
+				endY += float64(width)
+			}
+
+			// fmt.Printf("StartX: %v, StartY: %v, EndX: %v, EndY: %v, ScreenWidth: %v\n", startX, startY, endX, endY, screenWidthFloat)
 			addEdge(img, startX, startY, endX, endY, fillclr, width)
 			// East
 			startX = endX
@@ -110,23 +136,25 @@ func addParityBetweenDatablock(img *ebiten.Image, dataLeft, dataRight int, fill 
 			startY = endY
 			endX = dataRightXpos
 			endY = yOffset + (ySpace * (dataRightRow - 1))
-
+			if dataRightColumn < 0 && endX > screenWidthFloat {
+				return
+			}
 			addEdge(img, startX, startY, endX, endY, fillclr, width)
 		} else if class == entangler.Left {
 			// Draw 5 lines. North-East, East, South, East, North-East
 			fillclr := getColorForSpecialParities(fill, class, int(dataRightRow))
 
 			// North-East
-			startX := xOffset + dataLeftColumn*xSpace
+			startX := dataLeftXpos
 			startY := yOffset + (ySpace * (dataLeftRow - 1))
-			endX := startX + (xSpace / 2) - 5
-			endY := startY - (ySpace / 2) - 5
+			endX := startX + (xSpace / 2) - 8
+			endY := startY - (ySpace / 2) - 8
 
 			addEdge(img, startX, startY, endX, endY, fillclr, width)
 			// East
 			dataRightXpos = xOffset + dataRightColumn*xSpace //dataLeftXpos + xSpace //
 			if dataRightXpos < dataLeftXpos {
-				dataRightXpos += float64(screenWidth)
+				dataRightXpos += displayXSize
 			}
 			startX = endX
 			startY = endY
@@ -137,7 +165,7 @@ func addParityBetweenDatablock(img *ebiten.Image, dataLeft, dataRight int, fill 
 			startY = endY
 			endX = startX
 			endY = yOffset + (ySpace * (dataRightRow - 1)) + (ySpace / 2)
-			fmt.Printf("StartX: %v, StartY: %v, EndX: %v, EndY: %v\n", startX, startY, endX, endY)
+			// fmt.Printf("StartX: %v, StartY: %v, EndX: %v, EndY: %v\n", startX, startY, endX, endY)
 			addEdge(img, startX, startY, endX, endY, fillclr, width)
 			// East
 			startX = endX
@@ -149,48 +177,61 @@ func addParityBetweenDatablock(img *ebiten.Image, dataLeft, dataRight int, fill 
 			startY = endY
 			endX = dataRightXpos
 			endY = yOffset + (ySpace * (dataRightRow - 1))
-
+			if dataRightColumn < 0 && endX > screenWidthFloat {
+				return
+			}
 			addEdge(img, startX, startY, endX, endY, fillclr, width)
 		}
 	} else if dataLeftRow == dataRightRow { // Horizontal
-		dataLeftXpos = xOffset + dataLeftColumn*xSpace
+
 		dataLeftYpos = yOffset + (ySpace * (dataLeftRow - 1))
 
 		dataRightXpos = dataLeftXpos + xSpace // xOffset + dataRightColumn*xSpace + 1
 		dataRightYpos = yOffset + (ySpace * (dataRightRow - 1))
-
+		if dataRightColumn < 0 && dataRightXpos > screenWidthFloat {
+			dataRightXpos = screenWidthFloat
+		}
+		// fmt.Printf("dataLeftXpos: %v, dataRightXpos: %v, LeftCol: %v, screenWidthFloat: %v\n", dataLeftXpos, dataRightXpos, dataLeftColumn, screenWidthFloat)
 		addEdge(img, dataLeftXpos, dataLeftYpos, dataRightXpos, dataRightYpos, fill, width)
 	} else if dataLeftRow+1 == dataRightRow { // Right
-		dataLeftXpos = xOffset + dataLeftColumn*xSpace
 		dataLeftYpos = yOffset + (ySpace * (dataLeftRow - 1))
 
 		dataRightXpos = dataLeftXpos + xSpace
 		dataRightYpos = dataLeftYpos + ySpace
+		if dataRightColumn < 0 && dataRightXpos > screenWidthFloat {
+			dataRightXpos = screenWidthFloat
+		}
 		addEdge(img, dataLeftXpos, dataLeftYpos, dataRightXpos, dataRightYpos, fill, width)
 	} else if dataLeftRow-1 == dataRightRow { // Left
-		dataLeftXpos = xOffset + dataLeftColumn*xSpace
 		dataLeftYpos = yOffset + (ySpace * (dataLeftRow - 1))
 
 		dataRightXpos = dataLeftXpos + xSpace
 		dataRightYpos = dataLeftYpos - ySpace
+		if dataRightColumn < 0 && dataRightXpos > screenWidthFloat {
+			dataRightXpos = screenWidthFloat
+		}
 		addEdge(img, dataLeftXpos, dataLeftYpos, dataRightXpos, dataRightYpos, fill, width)
 	} else if dataLeftRow > dataRightRow { // Need to draw two lines. Wrap Right.
-		dataLeftXpos = xOffset + dataLeftColumn*xSpace + dataRadius
 		dataLeftYpos = yOffset + (ySpace * (dataLeftRow - 1))
 
 		dataRightXpos = dataLeftXpos + xSpace
 		dataRightYpos = yOffset
 
 		addEdge(img, dataLeftXpos-dataRadius, dataLeftYpos, dataLeftXpos+10, dataLeftYpos+dataRadius+10, fill, width)
+		if dataRightColumn < 0 && dataRightXpos > screenWidthFloat {
+			return
+		}
 		addEdge(img, dataRightXpos-(2*dataRadius)-10, dataRightYpos-dataRadius-10, dataRightXpos-dataRadius, dataRightYpos, fill, width)
 	} else if dataLeftRow < dataRightRow { // Need to draw two lines. Wrap Left.
-		dataLeftXpos = xOffset + dataLeftColumn*xSpace
 		dataLeftYpos = yOffset
 
 		dataRightXpos = dataLeftXpos + xSpace
 		dataRightYpos = yOffset + (ySpace * 4)
 
 		addEdge(img, dataLeftXpos, dataLeftYpos, dataLeftXpos+dataRadius+10, dataLeftYpos-dataRadius-10, fill, width)
+		if dataRightColumn < 0 && dataRightXpos > screenWidthFloat {
+			return
+		}
 		addEdge(img, dataRightXpos-dataRadius-10, dataRightYpos+dataRadius+10, dataRightXpos, dataRightYpos, fill, width)
 	}
 }

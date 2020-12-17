@@ -31,6 +31,7 @@ var (
 	zoominc      float64 = 0.2
 	windowYSize  int     = 500
 	windowXSize  int
+	displayXSize float64
 	logfile      string
 )
 
@@ -62,8 +63,9 @@ func init() {
 	lattice.RunInit()
 	w, h := ebiten.ScreenSizeInFullscreen()
 	windowXSize, windowYSize = w-10, int(float64(h)*0.5)
-	zoom = float64(windowXSize) / (float64(xOffset) + (float64(lattice.NumDataBlocks/lattice.HorizontalStrands)+float64(0.5))*xSpace)
-	// fmt.Printf("X: %v, Screen: %v, Zoom: %v\n", (float64(xOffset) + (float64(lattice.NumDataBlocks/lattice.HorizontalStrands)+float64(0.5))*xSpace), windowXSize, zoom)
+	displayXSize = (float64(xOffset) + (float64(lattice.NumDataBlocks/lattice.HorizontalStrands)+float64(0.5))*xSpace)
+	zoom = float64(windowXSize) / displayXSize
+	fmt.Printf("X: %v, Screen: %v, Zoom: %v\n", displayXSize, windowXSize, zoom)
 
 	if _, err := os.Stat(logfile); os.IsNotExist(err) {
 		fmt.Printf("Did not find logfile %v! Err: %v\n", logfile, err)
