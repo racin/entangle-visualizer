@@ -70,13 +70,6 @@ func addParityBetweenDatablock(img *ebiten.Image, dataLeft, dataRight int, fill 
 	if dataLeftXpos > screenWidthFloat {
 		return
 	}
-	/*
-		row = i % entangler.HorizontalStrands
-		column = int(i / entangler.HorizontalStrands)
-
-		x := float64(xOffset + (xSpace * column))
-		y := float64(yOffset + (ySpace * (row)))
-	*/
 	if dataLeft > dataRight {
 		// fmt.Printf("Want to draw between %v and %v, but this is a special case, RightCol: %v, Class: %v, screenWidthFloat: %v\n", dataLeft, dataRight, dataRightColumn, class, screenWidthFloat)
 		// screenWidth, _ := img.Size()
@@ -213,7 +206,7 @@ func addParityBetweenDatablock(img *ebiten.Image, dataLeft, dataRight int, fill 
 		addEdge(img, dataLeftXpos, dataLeftYpos, dataRightXpos, dataRightYpos, fill, width)
 	} else if dataLeftRow > dataRightRow { // Need to draw two lines. Wrap Right.
 		dataLeftYpos = yOffset + (ySpace * (dataLeftRow - 1))
-
+		dataLeftXpos += dataRadius
 		dataRightXpos = dataLeftXpos + xSpace
 		dataRightYpos = yOffset
 
