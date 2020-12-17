@@ -95,14 +95,13 @@ func addParityBetweenDatablock(img *ebiten.Image, dataLeft, dataRight int, fill 
 			addEdge(img, startX, startY, endX, endY, fillclr, width)
 			// North
 			startX = endX
-			startY = endY
+			startY = yOffset + (ySpace * (dataRightRow - 2)) + (ySpace / 2)
 			endX = startX
-			endY = yOffset + (ySpace * (dataRightRow - 1)) - (ySpace / 2)
 			fmt.Printf("StartX: %v, StartY: %v, EndX: %v, EndY: %v\n", startX, startY, endX, endY)
 			addEdge(img, startX, startY, endX, endY, fillclr, width)
 			// East
 			startX = endX
-			startY = endY
+			endY = startY
 			endX = dataRightXpos - (xSpace / 2)
 			addEdge(img, startX, startY, endX, endY, fillclr, width)
 			// South-East
@@ -113,44 +112,44 @@ func addParityBetweenDatablock(img *ebiten.Image, dataLeft, dataRight int, fill 
 
 			addEdge(img, startX, startY, endX, endY, fillclr, width)
 		} else if class == entangler.Left {
-			// // Draw 5 lines. North-East, East, South, East, North-East
-			// fillclr := getColorForSpecialParities(fill, class, int(dataRightRow))
+			// Draw 5 lines. North-East, East, South, East, North-East
+			fillclr := getColorForSpecialParities(fill, class, int(dataRightRow))
 
-			// // North-East
-			// startX := xOffset + dataLeftColumn*xSpace
-			// startY := yOffset + (ySpace * (dataLeftRow - 1))
-			// endX := startX + (xSpace / 2) - 5
-			// endY := startY - (ySpace / 2) - 5
+			// North-East
+			startX := xOffset + dataLeftColumn*xSpace
+			startY := yOffset + (ySpace * (dataLeftRow - 1))
+			endX := startX + (xSpace / 2) - 5
+			endY := startY - (ySpace / 2) - 5
 
-			// addEdge(img, startX, startY, endX, endY, fillclr, width)
-			// // East
-			// dataRightXpos = xOffset + dataRightColumn*xSpace //dataLeftXpos + xSpace //
-			// if dataRightXpos < dataLeftXpos {
-			// 	dataRightXpos += float64(screenWidth)
-			// }
-			// startX = endX
-			// startY = endY
-			// endX = dataRightXpos - 2.5*dataRadius + (float64(width-1) * dataLeftRow)
-			// addEdge(img, startX, startY, endX, endY, fillclr, width)
-			// // South
-			// startX = endX
-			// startY = endY
-			// endX = startX
-			// endY = yOffset + (ySpace * (dataRightRow - 1)) + (ySpace / 2)
-			// fmt.Printf("StartX: %v, StartY: %v, EndX: %v, EndY: %v\n", startX, startY, endX, endY)
-			// addEdge(img, startX, startY, endX, endY, fillclr, width)
-			// // East
-			// startX = endX
-			// startY = endY
-			// endX = dataRightXpos - (xSpace / 2)
-			// addEdge(img, startX, startY, endX, endY, fillclr, width)
-			// // North-East
-			// startX = endX
-			// startY = endY
-			// endX = dataRightXpos
-			// endY = yOffset + (ySpace * (dataRightRow - 1))
+			addEdge(img, startX, startY, endX, endY, fillclr, width)
+			// East
+			dataRightXpos = xOffset + dataRightColumn*xSpace //dataLeftXpos + xSpace //
+			if dataRightXpos < dataLeftXpos {
+				dataRightXpos += float64(screenWidth)
+			}
+			startX = endX
+			startY = endY
+			endX = dataRightXpos - 2.5*dataRadius + (float64(width-1) * dataLeftRow)
+			addEdge(img, startX, startY, endX, endY, fillclr, width)
+			// South
+			startX = endX
+			startY = endY
+			endX = startX
+			endY = yOffset + (ySpace * (dataRightRow - 1)) + (ySpace / 2)
+			fmt.Printf("StartX: %v, StartY: %v, EndX: %v, EndY: %v\n", startX, startY, endX, endY)
+			addEdge(img, startX, startY, endX, endY, fillclr, width)
+			// East
+			startX = endX
+			startY = endY
+			endX = dataRightXpos - (xSpace / 2)
+			addEdge(img, startX, startY, endX, endY, fillclr, width)
+			// North-East
+			startX = endX
+			startY = endY
+			endX = dataRightXpos
+			endY = yOffset + (ySpace * (dataRightRow - 1))
 
-			// addEdge(img, startX, startY, endX, endY, fillclr, width)
+			addEdge(img, startX, startY, endX, endY, fillclr, width)
 		}
 	} else if dataLeftRow == dataRightRow { // Horizontal
 		dataLeftXpos = xOffset + dataLeftColumn*xSpace

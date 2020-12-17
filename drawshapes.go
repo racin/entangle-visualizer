@@ -89,7 +89,13 @@ func addEdge(img *ebiten.Image, startX, startY, endX, endY float64, fill color.C
 
 	if startX == endX {
 		fmt.Printf("Trying to decrement.... xdiff: %v, ydiff: %v, m: %v", xdiff, ydiff, m)
-		for i := startY; i < endY; i++ {
+		start := startY
+		end := endY
+		if end < start {
+			start = endY
+			end = startY
+		}
+		for i := start; i < end; i++ {
 			if fill == red {
 				if math.Mod(math.Abs(i), 6) < 3 {
 					continue
@@ -98,8 +104,8 @@ func addEdge(img *ebiten.Image, startX, startY, endX, endY float64, fill color.C
 			ii := int(i)
 			xx := int(startX)
 			for j := 0; j < width; j++ {
-				if i-7 < startY {
-					if i-2 < startY || j+2 >= width {
+				if i-7 < start {
+					if i-2 < start || j+2 >= width {
 						img.Set(xx+j, ii, edge)
 					} else {
 						img.Set(xx+j, ii, fill)
