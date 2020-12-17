@@ -31,19 +31,19 @@ func getColorForSpecialParities(oldClr color.Color, class entangler.StrandClass,
 	}
 }
 
-func isFillRed(fill color.Color) bool {
-	reds := []int{0, 12, 13, 14, 15, 17}
-	for i := 0; i < len(colors); i++ {
-		if fill == colors[i] {
-			for j := 0; j < len(reds); j++ {
-				if i == reds[j] {
-					return true
-				}
-			}
-		}
-	}
-	return false
-}
+// func isFillRed(fill color.Color) bool {
+// 	reds := []int{0, 12, 13, 14, 15, 17}
+// 	for i := 0; i < len(colors); i++ {
+// 		if fill == colors[i] {
+// 			for j := 0; j < len(reds); j++ {
+// 				if i == reds[j] {
+// 					return true
+// 				}
+// 			}
+// 		}
+// 	}
+// 	return false
+// }
 
 func addParityBetweenDatablock(img *ebiten.Image, dataLeft, dataRight int, fill color.Color, width, columnOffset, horizontalStands int, class entangler.StrandClass) {
 	defer func() {
@@ -114,7 +114,7 @@ func addParityBetweenDatablock(img *ebiten.Image, dataLeft, dataRight int, fill 
 			}
 			startX = endX
 			startY = endY
-			endX = dataRightXpos - 2.5*dataRadius + (float64(width-1) * dataLeftRow)
+			endX = dataRightXpos - 2.5*dataRadius + (float64(width-1) * dataRightRow)
 			addEdge(img, startX, startY, endX, endY, fillclr, width)
 			// North
 			startX = endX
@@ -129,7 +129,7 @@ func addParityBetweenDatablock(img *ebiten.Image, dataLeft, dataRight int, fill 
 			// East
 			startX = endX
 			endY = startY
-			endX = dataRightXpos - dataRadius // - (xSpace / 2)
+			endX = dataRightXpos - dataRadius + 4 // - (xSpace / 2)
 			addEdge(img, startX, startY, endX, endY, fillclr, width)
 			// South-East
 			startX = endX
@@ -158,7 +158,7 @@ func addParityBetweenDatablock(img *ebiten.Image, dataLeft, dataRight int, fill 
 			}
 			startX = endX
 			startY = endY
-			endX = dataRightXpos - 2.5*dataRadius + (float64(width-1) * dataLeftRow)
+			endX = dataRightXpos - 2.5*dataRadius + (float64(width-1) * dataRightRow)
 			addEdge(img, startX, startY, endX, endY, fillclr, width)
 			// South
 			startX = endX

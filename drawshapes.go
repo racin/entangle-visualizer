@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"image/color"
 	"math"
 
@@ -65,7 +64,7 @@ func addEdge(img *ebiten.Image, startX, startY, endX, endY float64, fill color.C
 
 	var edge color.Color
 	if fill == red {
-		edge = red
+		edge = fill
 	} else {
 		edge = color.Black
 	}
@@ -88,7 +87,7 @@ func addEdge(img *ebiten.Image, startX, startY, endX, endY float64, fill color.C
 	// }
 
 	if startX == endX {
-		fmt.Printf("Trying to decrement.... xdiff: %v, ydiff: %v, m: %v", xdiff, ydiff, m)
+		// fmt.Printf("Trying to decrement.... xdiff: %v, ydiff: %v, m: %v", xdiff, ydiff, m)
 		start := startY
 		end := endY
 		if end < start {
