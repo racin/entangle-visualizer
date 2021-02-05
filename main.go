@@ -59,7 +59,8 @@ func init() {
 		log.Fatal(err)
 	}
 
-	lattice = entangler.NewLattice(context.TODO(), 3, 5, 5, 259)
+	lattice = entangler.NewLattice(context.TODO(), 3, 5, 5, 1015)
+	//lattice = entangler.NewLattice(context.TODO(), 3, 5, 5, 259)
 	lattice.RunInit()
 	w, h := ebiten.ScreenSizeInFullscreen()
 	windowXSize, windowYSize = w-10, int(float64(h)*0.5)

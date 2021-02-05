@@ -256,7 +256,7 @@ func (l *LogParser) ReadLog(lattice *entangler.Lattice) {
 			if entry.DownloadStatus == DownloadFailed && !entry.HasData {
 				fmt.Printf(" - Data Unavailable. Position:%d\n", entry.Position)
 				b.IsUnavailable = true
-			} else if entry.DownloadStatus == DownloadFailed && entry.HasData {
+			} else if (entry.DownloadStatus == DownloadFailed || entry.RepairStatus == RepairSuccess) && entry.HasData {
 				fmt.Printf(" - Data Reconstructed. Position:%d\n", entry.Position)
 				fmt.Printf("Entry: %v\n", entry)
 				b.Data = make([]byte, swarmconnector.ChunkSizeOffset+1)
