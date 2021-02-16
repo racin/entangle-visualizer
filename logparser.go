@@ -127,7 +127,7 @@ func limitLength(s string, length int) string {
 	return s[:length]
 }
 
-func (l *LogParser) ParseLog() error {
+func (l *LogParser) ParseLog(offset ...int) error {
 	file, err := os.Open(l.Path)
 	defer file.Close()
 
@@ -153,6 +153,14 @@ func (l *LogParser) ParseLog() error {
 			if newEntry.RepairStatus == RepairPending || newEntry.DownloadStatus == DownloadPending {
 				continue
 			}
+			if len(offset) == 2 {
+				if newEntry.Position <= offset[0] || newEntry.Position > offset[1] {
+					continue
+				}
+				newEntry.Position -= offset[0]
+				newEntry.LeftPos -= offset[0]
+				newEntry.RightPos -= offset[0]
+			}
 			blockEntries = append(blockEntries, newEntry)
 			blockError = ""
 		case 2:
@@ -164,6 +172,9 @@ func (l *LogParser) ParseLog() error {
 			} else {
 				StartTime, _ := strconv.ParseInt(entry[0], 10, 64)
 				EndTime, _ := strconv.ParseInt(entry[1][:len(entry[1])-1], 10, 64)
+				if len(blockEntries) == 0 {
+					continue
+				}
 				l.TotalEntry = append(l.TotalEntry, NewTotalEntry(Datablocks, Parityblocks, StartTime,
 					EndTime, totalError, blockEntries))
 				blockEntrySize = max(blockEntrySize, Datablocks+Parityblocks)

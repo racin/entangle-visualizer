@@ -6,6 +6,7 @@ import (
 	"image/color"
 	"log"
 	"os"
+	"strconv"
 	"sync"
 	"time"
 
@@ -33,6 +34,8 @@ var (
 	windowXSize  int
 	displayXSize float64
 	logfile      string
+	logOffsetBtm int // Ignore entries under this
+	logOffsetTop int // Ignore entries over this
 )
 
 const (
@@ -54,17 +57,24 @@ func init() {
 		os.Exit(1)
 	}
 	logfile = os.Args[1]
+
 	tt, err := truetype.Parse(fonts.OpenSans_Regular_tff)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	lattice = entangler.NewLattice(context.TODO(), 3, 5, 5, 1015)
-	//lattice = entangler.NewLattice(context.TODO(), 3, 5, 5, 259)
+	if len(os.Args) > 3 {
+		logOffsetBtm, _ = strconv.Atoi(os.Args[2])
+		logOffsetTop, _ = strconv.Atoi(os.Args[3])
+	}
+	blocks := 1015 // 259
+	//lattice = entangler.NewLattice(context.TODO(), 3, 5, 5, 25803)
+	//lattice = entangler.NewLattice(context.TODO(), 3, 5, 5, 1015)
+	lattice = entangler.NewLattice(context.TODO(), 3, 5, 5, blocks)
 	lattice.RunInit()
 	w, h := ebiten.ScreenSizeInFullscreen()
 	windowXSize, windowYSize = w-10, int(float64(h)*0.5)
-	displayXSize = (float64(xOffset) + (float64(lattice.NumDataBlocks/lattice.HorizontalStrands)+float64(0.5))*xSpace)
+	numBlocks := min(25803, blocks)
+	displayXSize = (float64(xOffset) + (float64(numBlocks/lattice.HorizontalStrands)+float64(0.5))*xSpace)
 	zoom = float64(windowXSize) / displayXSize
 	fmt.Printf("X: %v, Screen: %v, Zoom: %v\n", displayXSize, windowXSize, zoom)
 
@@ -139,6 +149,11 @@ func keyPressed(img *ebiten.Image, key ebiten.Key, presses int) {
 		columnOffset += columninc
 	} else if key.String() == ebiten.Key6.String() {
 		newColumn := columnOffset - columninc
+		columnOffset = max(0, newColumn)
+	} else if key.String() == ebiten.Key7.String() {
+		columnOffset += columninc * 10
+	} else if key.String() == ebiten.Key8.String() {
+		newColumn := columnOffset - columninc*10
 		columnOffset = max(0, newColumn)
 	}
 
