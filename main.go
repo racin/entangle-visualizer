@@ -66,9 +66,7 @@ func init() {
 		logOffsetBtm, _ = strconv.Atoi(os.Args[2])
 		logOffsetTop, _ = strconv.Atoi(os.Args[3])
 	}
-	blocks := 1015 // 259
-	//lattice = entangler.NewLattice(context.TODO(), 3, 5, 5, 25803)
-	//lattice = entangler.NewLattice(context.TODO(), 3, 5, 5, 1015)
+	blocks := 259 // 25803 // 1015 // 259
 	lattice = entangler.NewLattice(context.TODO(), 3, 5, 5, blocks)
 	lattice.RunInit()
 	w, h := ebiten.ScreenSizeInFullscreen()
@@ -84,7 +82,8 @@ func init() {
 	}
 
 	logParser = NewLogParser(logfile)
-	if err := logParser.ParseLog(); err != nil {
+	//if err := logParser.ParseLog(); err != nil {
+	if err := logParser.ParseLog(logOffsetBtm, logOffsetTop); err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}

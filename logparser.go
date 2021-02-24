@@ -153,7 +153,7 @@ func (l *LogParser) ParseLog(offset ...int) error {
 			if newEntry.RepairStatus == RepairPending || newEntry.DownloadStatus == DownloadPending {
 				continue
 			}
-			if len(offset) == 2 {
+			if len(offset) == 2 && offset[0] != 0 && offset[1] != 0 {
 				if newEntry.Position <= offset[0] || newEntry.Position > offset[1] {
 					continue
 				}
