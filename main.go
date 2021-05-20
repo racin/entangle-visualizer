@@ -234,7 +234,7 @@ func update(screen *ebiten.Image) error {
 			rightPos = block.Right[0].Position
 		}
 
-		var clr color.Color
+		var clr color.Color = color.RGBA{0xff, 0xff, 0xff, 0xff} // Everything white. Comment the stuff below of you want it.
 		if !block.HasData() && block.IsUnavailable {
 			clr = color.RGBA{0xff, 0, 0, 0xff} // Dotted red line
 		} else if !block.WasDownloaded {
@@ -242,14 +242,14 @@ func update(screen *ebiten.Image) error {
 		} else {
 			clr = color.RGBA{0x0, 0xff, 0, 0xff} // Green line
 		}
-		// switch block.Class {
-		// case entangler.Horizontal:
-		// 	clr = color.RGBA{0, 0xff, 0, 0xff}
-		// case entangler.Right:
-		// 	clr = color.RGBA{0, 0, 0xff, 0xff}
-		// case entangler.Left:
-		// 	clr = color.Black
-		// }
+		switch block.Class {
+		case entangler.Horizontal:
+			clr = color.RGBA{0, 0xff, 0, 0xff}
+		case entangler.Right:
+			clr = color.RGBA{0, 0, 0xff, 0xff}
+		case entangler.Left:
+			clr = color.Black
+		}
 		co := -columnOffset
 		if i >= numBlocks {
 			co += lattice.NumDataBlocks/lattice.HorizontalStrands + 1
@@ -262,7 +262,7 @@ func update(screen *ebiten.Image) error {
 		if bl.IsParity {
 			continue
 		}
-		var clr color.Color
+		var clr color.Color = color.RGBA{0xff, 0xff, 0xff, 0xff} // Everything white. Comment the stuff below of you want it.
 		if bl.HasData() {
 			if !bl.WasDownloaded {
 				clr = color.RGBA{0x33, 0x99, 0xff, 0xff}
